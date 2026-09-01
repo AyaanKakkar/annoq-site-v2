@@ -170,3 +170,22 @@ On mobile:
 - Query drawer becomes narrower.
 - Docs navigation stacks above content.
 
+
+## Progress Feedback
+
+Any operation that can take more than about a quarter second reports itself to the
+busy registry, and one bar under the main menu shows it:
+
+```text
+src/features/busy/busyState.tsx    registry: useBusy, useBusyWhile
+src/features/busy/BusyBar.tsx      the bar itself
+```
+
+- Mirror existing boolean state with `useBusyWhile(active, label)`; wrap promises with
+  `busy.run(label, fn)`.
+- Label what is happening ("Loading page 3…"), not that something is.
+- **Client-side work must be wrapped in `startTransition`** before it is reported. A
+  synchronous multi-second render commits in the same frame as the click, so the bar
+  never paints — that was issue #12.
+- The bar overlays the content and is offset by `var(--annoq-appbar-h)`. It must never
+  take layout space: pushing the page down relayouts every cell of the results table.

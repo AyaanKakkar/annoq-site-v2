@@ -7,23 +7,23 @@ import {
   Box,
   Button,
   Chip,
-  Dialog,
-  DialogContent,
-  DialogTitle,
   IconButton,
   Pagination,
   Stack,
   Tooltip,
   Typography
 } from '@mui/material';
-import { useEffect, useMemo, useState } from 'react';
+import { memo, useEffect, useMemo, useState, useTransition } from 'react';
 import { graphqlRequest } from '../../lib/api';
 import { labelFor } from '../../lib/annotations';
 import { API_BASE, PAGE_SIZE } from '../../lib/config';
 import { formatCell } from '../../lib/formatters';
 import { buildDownloadQuery } from '../../lib/queryBuilder';
+import { useBusy, useBusyWhile } from '../busy/busyState';
 import { useAnnotations } from '../annotations/useAnnotations';
+import type { AnnotationStore } from '../../types';
 import { useSearchState } from './searchState';
+import { useViewAll } from './ViewAllDialog';
 
 const COLUMN_WIDTH = 210;
 const PIN_STORAGE_KEY = 'annoq:columnPins';
@@ -40,9 +40,13 @@ const DEFAULT_PINNED_BY_MODE = {
 export function ResultsTable() {
   const { state, dispatch } = useSearchState();
   const store = useAnnotations().data;
-  const [dialog, setDialog] = useState<{ title: string; content: React.ReactNode } | null>(null);
   const [pinnedFields, setPinnedFields] = useState<string[]>([]);
   const [pinSignature, setPinSignature] = useState('');
+  const busy = useBusy();
+  const [rowPending, startRowTransition] = useTransition();
+  const [pinPending, startPinTransition] = useTransition();
+  useBusyWhile(rowPending, 'Opening row details…');
+  useBusyWhile(pinPending, 'Repositioning columns…');
   const result = state.result;
 
   useEffect(() => {
@@ -103,20 +107,24 @@ export function ResultsTable() {
   }
 
   function togglePinned(field: string) {
-    setPinnedFields((current) => {
-      const next = current.includes(field) ? current.filter((pinned) => pinned !== field) : [...current, field];
-      if (pinSignature) savePins(pinSignature, next);
-      return next;
-    });
+    // Computed outside the updater so the savePins side effect cannot run twice
+    // when React replays the transition.
+    const next = pinnedFields.includes(field)
+      ? pinnedFields.filter((pinned) => pinned !== field)
+      : [...pinnedFields, field];
+    if (pinSignature) savePins(pinSignature, next);
+    startPinTransition(() => setPinnedFields(next));
   }
 
   async function download() {
     if (!state.submitted || !store) return;
-    const data = await graphqlRequest<{ url?: string }>(buildDownloadQuery(state.submitted, store));
-    if (data.url) {
-      const url = data.url.startsWith('http') ? data.url : `${API_BASE}/download${data.url}`;
-      window.open(url, '_blank', 'noopener,noreferrer');
-    }
+    await busy.run('Preparing download…', async () => {
+      const data = await graphqlRequest<{ url?: string }>(buildDownloadQuery(state.submitted!, store));
+      if (data.url) {
+        const url = data.url.startsWith('http') ? data.url : `${API_BASE}/download${data.url}`;
+        window.open(url, '_blank', 'noopener,noreferrer');
+      }
+    });
   }
 
   if (!result || !store) {
@@ -209,7 +217,7 @@ export function ResultsTable() {
           </thead>
           <tbody>
             {result.rows.map((row, rowIndex) => (
-              <tr key={rowIndex} onClick={() => dispatch({ type: 'selectRow', row })}>
+              <tr key={rowIndex} onClick={() => startRowTransition(() => dispatch({ type: 'selectRow', row }))}>
                 {orderedColumns.map((field) => {
                   const pinnedLeft = pinnedOffsets.get(field);
                   const isPinned = pinnedLeft !== undefined;
@@ -219,7 +227,7 @@ export function ResultsTable() {
                     className={isPinned ? 'pinned-column' : undefined}
                     style={isPinned ? { left: pinnedLeft } : undefined}
                   >
-                    {formatCell(field, row[field], row, store, (title, content) => setDialog({ title, content })).node}
+                    <ResultCell field={field} value={row[field]} row={row} store={store} />
                   </td>
                   );
                 })}
@@ -238,13 +246,31 @@ export function ResultsTable() {
           size="small"
         />
       </Stack>
-      <Dialog open={Boolean(dialog)} onClose={() => setDialog(null)} maxWidth="sm" fullWidth>
-        <DialogTitle>{dialog?.title}</DialogTitle>
-        <DialogContent>{dialog?.content}</DialogContent>
-      </Dialog>
     </Box>
   );
 }
+
+/**
+ * Memoized so a table-level state change — pinning, filtering, selecting a row —
+ * reformats only the cells whose own props changed. `row` identity is stable
+ * because rows come straight from `state.result`, and the view-all opener comes
+ * from context rather than an inline prop, which is what lets the comparison
+ * succeed at all.
+ */
+const ResultCell = memo(function ResultCell({
+  field,
+  value,
+  row,
+  store
+}: {
+  field: string;
+  value: unknown;
+  row: Record<string, unknown>;
+  store: AnnotationStore;
+}) {
+  const openViewAll = useViewAll();
+  return <>{formatCell(field, value, row, store, openViewAll).node}</>;
+});
 
 type StoredPinSet = {
   key: string;

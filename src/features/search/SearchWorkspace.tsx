@@ -35,7 +35,9 @@ import { defaultSelectionForStore } from '../../lib/annotations';
 import { LOCKED_ANNOTATION_NAMES } from '../../lib/config';
 import { useAnnotationSelection } from '../annotations/AnnotationSelectionProvider';
 import { useAnnotations } from '../annotations/useAnnotations';
+import { useBusyWhile } from '../busy/busyState';
 import { useSearchState } from './searchState';
+import type { SearchState } from './searchState';
 import { QueryDrawer } from './QueryDrawer';
 import { ResultsTable } from './ResultsTable';
 import { SummaryPanel } from './SummaryPanel';
@@ -56,6 +58,8 @@ export function SearchWorkspace() {
   const defaultsInitialized = useRef(false);
 
   const store = annotationsQuery.data;
+
+  useBusyWhile(state.loading, searchBusyLabel(state));
 
   useEffect(() => {
     // "No prior selection" cannot mean "empty" any more: chr and pos are always
@@ -241,6 +245,14 @@ export function SearchWorkspace() {
       </Drawer>
     </Box>
   );
+}
+
+/**
+ * A submit clears the previous result (`searchState.tsx`, case 'submit'), so a
+ * result being present is exactly what separates paging from a fresh query.
+ */
+export function searchBusyLabel(state: SearchState): string {
+  return state.result ? `Loading page ${state.page}…` : 'Searching annotations…';
 }
 
 export function submitSearch(

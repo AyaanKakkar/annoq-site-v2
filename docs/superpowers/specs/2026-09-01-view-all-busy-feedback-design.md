@@ -5,8 +5,8 @@ bring up detail panel when clicked"*
 
 Branch: `issue-12-view-all-button`
 Date: 2026-09-01
-Status: designed, not yet implemented. **Cannot be verified in a browser from this environment** —
-no browser or Playwright is available (see "Verification" below).
+Status: implemented. **Not yet verified in a browser** — no browser or Playwright is
+available in this environment (see "Verification" below).
 
 Reported repro: search screen → default chromosome range with all annotations enabled → submit →
 scroll to a Gene Ontology column → click the **VIEW ALL n** button in a cell → no panel appears.

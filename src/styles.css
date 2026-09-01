@@ -895,3 +895,26 @@ a:hover {
     max-width: 190px;
   }
 }
+
+/*
+ * Issue #12. Overlays the top of the content instead of taking layout space:
+ * pushing the content down would relayout every cell of the results table
+ * (27,750 of them with all annotations enabled) each time the bar appeared.
+ * The offset is the AppBar height published by useAppBarHeight, never a literal.
+ */
+.busy-bar {
+  position: fixed;
+  top: var(--annoq-appbar-h);
+  left: 0;
+  right: 0;
+  z-index: 1201;
+  background: #fff;
+  border-bottom: 1px solid #d9e1ee;
+  box-shadow: 0 1px 4px rgba(24, 49, 83, 0.12);
+}
+
+.busy-bar-message {
+  align-items: center;
+  padding: 4px 12px;
+  color: #183153;
+}

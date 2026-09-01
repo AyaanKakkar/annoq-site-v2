@@ -2,7 +2,9 @@ import { render, screen } from '@testing-library/react';
 import { useEffect } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { buildAnnotationStore } from '../../lib/annotations';
+import { BusyProvider } from '../busy/busyState';
 import { initialSearchState, SearchProvider, useSearchState } from './searchState';
+import { ViewAllProvider } from './ViewAllDialog';
 import type { Annotation, QueryRequest, ResultPage } from '../../types';
 
 const store = buildAnnotationStore([
@@ -51,10 +53,14 @@ describe('results table keyboard scrolling', () => {
   it('exposes the scroll container as a focusable, named region', async () => {
     const { ResultsTable } = await import('./ResultsTable');
     render(
-      <SearchProvider>
-        <SeedResult />
-        <ResultsTable />
-      </SearchProvider>
+      <BusyProvider>
+        <SearchProvider>
+          <ViewAllProvider>
+            <SeedResult />
+            <ResultsTable />
+          </ViewAllProvider>
+        </SearchProvider>
+      </BusyProvider>
     );
 
     const region = screen.getByRole('region', { name: 'Search results table' });

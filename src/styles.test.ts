@@ -74,3 +74,21 @@ describe('search panels are sized by flex, not by percentage height', () => {
     }
   );
 });
+
+// The bar sits under the menu without displacing anything: fixed, offset by the
+// measured AppBar height, above the drawers (1200) and below dialogs (1300).
+describe('busy bar is pinned under the measured AppBar', () => {
+  it('uses the measured offset rather than a literal', () => {
+    const rule = declarationsFor('.busy-bar');
+    expect(rule).toMatch(/position:\s*fixed/);
+    expect(rule).toContain('top: var(--annoq-appbar-h)');
+    expect(rule).not.toMatch(/top:[^;]*60px/);
+  });
+
+  it('layers above the drawers and below dialogs', () => {
+    const rule = declarationsFor('.busy-bar');
+    const zIndex = /z-index:\s*(\d+)/.exec(rule)?.[1];
+    expect(Number(zIndex)).toBeGreaterThan(1200);
+    expect(Number(zIndex)).toBeLessThan(1300);
+  });
+});

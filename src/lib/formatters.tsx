@@ -1,12 +1,19 @@
 import { Box, Button, Link, Stack, Typography } from '@mui/material';
 import type { ReactNode } from 'react';
 import pantherTerms from '../data/panther_terms.json';
+import { labelFor } from './annotations';
 import type { AnnotationStore } from '../types';
 import { ColumnValueType } from '../types';
 import { GENES_DISPLAYED_SIZE, TERMS_DISPLAYED_SIZE, UCSC_URL } from './config';
 
 type PantherTerm = { id?: string; label?: string };
 const terms = pantherTerms as Record<string, PantherTerm>;
+
+/**
+ * `render` is a thunk, not a node: building the full list eagerly for every cell
+ * of a 555-column table is what made "View all" look broken (issue #12).
+ */
+export type ViewAllHandler = (title: string, render: () => ReactNode, count: number) => void;
 
 export type FormattedCell = {
   node: ReactNode;
@@ -19,7 +26,7 @@ export function formatCell(
   value: unknown,
   row: Record<string, unknown>,
   store: AnnotationStore,
-  onViewAll?: (title: string, content: ReactNode) => void
+  onViewAll?: ViewAllHandler
 ): FormattedCell {
   if (value === undefined || value === null || value === '') {
     return { node: <span className="muted">-</span>, plain: '' };
@@ -43,7 +50,7 @@ export function formatCell(
   if (detail?.value_type === ColumnValueType.TERM) {
     const items = stringValue.split(';').filter(Boolean).map((id) => ({ id, ...(terms[id] ?? { label: id }) }));
     return listCell(
-      field,
+      labelFor(field, store),
       items.map((item) => (
         <span key={item.id}>
           {item.label}{' '}
@@ -62,7 +69,7 @@ export function formatCell(
     const root = store.byName.enhancer_linked_genes?.root_url ?? detail.root_url ?? '';
     const items = stringValue.split(';').filter(Boolean);
     return listCell(
-      field,
+      labelFor(field, store),
       items.map((item) => (
         <Link key={item} href={`${root}${encodeURIComponent(item)}`} target="_blank" rel="noreferrer">
           {item}
@@ -76,21 +83,23 @@ export function formatCell(
 
   if (stringValue.includes('|')) {
     const items = stringValue.split('|').filter(Boolean);
-    return listCell(field, items, items.join('; '), TERMS_DISPLAYED_SIZE, onViewAll);
+    return listCell(labelFor(field, store), items, items.join('; '), TERMS_DISPLAYED_SIZE, onViewAll);
   }
 
   return { node: stringValue, plain: stringValue };
 }
 
 function listCell(
-  field: string,
+  title: string,
   items: ReactNode[],
   plain: string,
   limit: number,
-  onViewAll?: (title: string, content: ReactNode) => void
+  onViewAll?: ViewAllHandler
 ): FormattedCell {
   const visible = items.slice(0, limit);
-  const content = (
+  // Built on demand. Eagerly constructing this for every cell cost a full render
+  // of every list in the table, opened or not.
+  const buildFullList = () => (
     <Stack component="ul" spacing={0.5} sx={{ pl: 2, m: 0 }}>
       {items.map((item, index) => (
         <Typography component="li" variant="caption" key={index}>
@@ -113,7 +122,7 @@ function listCell(
         {items.length > limit && (
           <Button size="small" variant="text" onClick={(event) => {
             event.stopPropagation();
-            onViewAll?.(field, content);
+            onViewAll?.(title, buildFullList, items.length);
           }}>
             View all {items.length}
           </Button>
