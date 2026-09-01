@@ -3,7 +3,9 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Annotation } from '../../types';
 import { AnnotationSelectionProvider, useAnnotationSelection } from '../annotations/AnnotationSelectionProvider';
+import { BusyProvider } from '../busy/busyState';
 import { SearchProvider } from './searchState';
+import { ViewAllProvider } from './ViewAllDialog';
 import { SearchWorkspace } from './SearchWorkspace';
 
 // Ids arrive from the API as JSON strings on both deployment stacks. That is
@@ -51,12 +53,16 @@ async function renderWorkspace(annotations: Annotation[]) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   render(
     <QueryClientProvider client={client}>
-      <AnnotationSelectionProvider>
-        <SearchProvider>
-          <SelectionProbe />
-          <SearchWorkspace />
-        </SearchProvider>
-      </AnnotationSelectionProvider>
+      <BusyProvider>
+        <AnnotationSelectionProvider>
+          <SearchProvider>
+            <ViewAllProvider>
+              <SelectionProbe />
+              <SearchWorkspace />
+            </ViewAllProvider>
+          </SearchProvider>
+        </AnnotationSelectionProvider>
+      </BusyProvider>
     </QueryClientProvider>
   );
   return screen.findByTestId('selection');
@@ -95,5 +101,27 @@ describe('default annotation selection', () => {
     window.localStorage.setItem('annoq:selectedAnnotations', JSON.stringify(['chr', 'pos']));
     const probe = await renderWorkspace(hrcAnnotations);
     await vi.waitFor(() => expect(probe.textContent).toBe('chr,pos,ref,alt,rs_dbSNP151'));
+  });
+});
+
+import { initialSearchState, type SearchState } from './searchState';
+import { searchBusyLabel } from './SearchWorkspace';
+
+describe('search progress label', () => {
+  const loadingFresh: SearchState = { ...initialSearchState, loading: true };
+
+  it('names a fresh search', () => {
+    expect(searchBusyLabel(loadingFresh)).toBe('Searching annotations…');
+  });
+
+  // A submit clears the previous result, so the presence of one is what
+  // distinguishes paging from a new query.
+  it('names the page being fetched once results are on screen', () => {
+    const paging = {
+      ...loadingFresh,
+      page: 3,
+      result: { columns: [], rows: [], aggs: {}, page: 2, pageSize: 50, total: 100 }
+    } as unknown as SearchState;
+    expect(searchBusyLabel(paging)).toBe('Loading page 3…');
   });
 });

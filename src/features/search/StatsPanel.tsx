@@ -16,6 +16,7 @@ import { Box, FormControl, InputLabel, MenuItem, Select, Stack, Tab, Tabs, Typog
 import { useState } from 'react';
 import { labelFor } from '../../lib/annotations';
 import { useAnnotations } from '../annotations/useAnnotations';
+import { useBusyWhile } from '../busy/busyState';
 import { useSearchState } from './searchState';
 
 const BAR_COLORS = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#17becf', '#bcbd22', '#7f7f7f'];
@@ -24,6 +25,13 @@ export function StatsPanel({ compact = false }: { compact?: boolean }) {
   const { state, dispatch } = useSearchState();
   const store = useAnnotations().data;
   const [tab, setTab] = useState('general');
+
+  // Computed above the early return so the hook below always runs.
+  const pendingField = state.statsField ?? state.result?.columns[0];
+  const statsPending = Boolean(
+    state.result && store && pendingField && (!state.stats || state.stats.field !== pendingField)
+  );
+  useBusyWhile(statsPending, 'Loading stats…');
 
   if (!state.result || !store) return <Box className="empty-state">No Results</Box>;
   const selectedField = state.statsField ?? state.result.columns[0];

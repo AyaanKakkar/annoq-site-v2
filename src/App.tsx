@@ -4,7 +4,10 @@ import { useTheme } from '@mui/material/styles';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link as RouterLink, Route, Routes, useLocation } from 'react-router-dom';
 import { Footer } from './components/Footer';
+import { BusyProvider } from './features/busy/busyState';
+import { BusyBar } from './features/busy/BusyBar';
 import { SearchProvider } from './features/search/searchState';
+import { ViewAllProvider } from './features/search/ViewAllDialog';
 import { AnnotationSelectionProvider } from './features/annotations/AnnotationSelectionProvider';
 import { SearchWorkspace } from './features/search/SearchWorkspace';
 import { AboutPage, ContactPage, CookiePolicyPage, HomePage, NewsPage, VersionPage } from './pages/StaticPages';
@@ -49,45 +52,50 @@ export default function App() {
 
   return (
     <Box className={isSearch ? 'app-shell app-shell--locked' : 'app-shell'}>
-      <AppBar ref={appBarRef} position="sticky" color="inherit" elevation={0} className="main-appbar">
-        <Toolbar variant="dense" className="main-toolbar">
-          {isMobile && (
-            <IconButton edge="start" onClick={() => setOpen(true)}>
-              <MenuIcon />
-            </IconButton>
-          )}
-          <Typography component={RouterLink} to="/" className="brand" variant="h6">
-            AnnoQ
-          </Typography>
-          <Stack direction="row" spacing={0} className="launch-buttons">
-            <Button component={RouterLink} to="/search" variant="outlined">Launch Query UI</Button>
-            <Button component={RouterLink} to="/docs/tutorials/ui-query" variant="outlined">UI Tutorial</Button>
-          </Stack>
-          <Box sx={{ flex: 1 }} />
-          {!isMobile && <Stack direction="row">{navLinks}</Stack>}
-        </Toolbar>
-      </AppBar>
-      <Drawer open={open} onClose={() => setOpen(false)}>
-        <Stack sx={{ width: 260, p: 1 }}>{navLinks}</Stack>
-      </Drawer>
-      <AnnotationSelectionProvider>
-        <SearchProvider>
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/search" element={<SearchWorkspace />} />
-            <Route path="/detail" element={<SupportedAnnotationsPage />} />
-            <Route path="/about" element={<AboutPage />} />
-            <Route path="/release" element={<NewsPage />} />
-            <Route path="/contact" element={<ContactPage />} />
-            <Route path="/cookie-policy" element={<CookiePolicyPage />} />
-            <Route path="/version" element={<VersionPage />} />
-            <Route path="/docs" element={<DocsPage />} />
-            <Route path="/docs/:section" element={<DocsPage />} />
-            <Route path="/docs/:section/:page" element={<DocsPage />} />
-          </Routes>
-        </SearchProvider>
-      </AnnotationSelectionProvider>
-      {!isSearch && <Footer />}
+      <BusyProvider>
+        <AppBar ref={appBarRef} position="sticky" color="inherit" elevation={0} className="main-appbar">
+          <Toolbar variant="dense" className="main-toolbar">
+            {isMobile && (
+              <IconButton edge="start" onClick={() => setOpen(true)}>
+                <MenuIcon />
+              </IconButton>
+            )}
+            <Typography component={RouterLink} to="/" className="brand" variant="h6">
+              AnnoQ
+            </Typography>
+            <Stack direction="row" spacing={0} className="launch-buttons">
+              <Button component={RouterLink} to="/search" variant="outlined">Launch Query UI</Button>
+              <Button component={RouterLink} to="/docs/tutorials/ui-query" variant="outlined">UI Tutorial</Button>
+            </Stack>
+            <Box sx={{ flex: 1 }} />
+            {!isMobile && <Stack direction="row">{navLinks}</Stack>}
+          </Toolbar>
+        </AppBar>
+        <BusyBar />
+        <Drawer open={open} onClose={() => setOpen(false)}>
+          <Stack sx={{ width: 260, p: 1 }}>{navLinks}</Stack>
+        </Drawer>
+        <AnnotationSelectionProvider>
+          <SearchProvider>
+            <ViewAllProvider>
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/search" element={<SearchWorkspace />} />
+                <Route path="/detail" element={<SupportedAnnotationsPage />} />
+                <Route path="/about" element={<AboutPage />} />
+                <Route path="/release" element={<NewsPage />} />
+                <Route path="/contact" element={<ContactPage />} />
+                <Route path="/cookie-policy" element={<CookiePolicyPage />} />
+                <Route path="/version" element={<VersionPage />} />
+                <Route path="/docs" element={<DocsPage />} />
+                <Route path="/docs/:section" element={<DocsPage />} />
+                <Route path="/docs/:section/:page" element={<DocsPage />} />
+              </Routes>
+            </ViewAllProvider>
+          </SearchProvider>
+        </AnnotationSelectionProvider>
+        {!isSearch && <Footer />}
+      </BusyProvider>
     </Box>
   );
 }
