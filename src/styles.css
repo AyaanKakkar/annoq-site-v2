@@ -1,6 +1,8 @@
 :root {
   /* Fallback for the first paint; replaced with the AppBar's measured height. */
   --annoq-appbar-h: 60px;
+  /* Zero while idle; set to the busy bar's measured height while it is shown. */
+  --annoq-busy-h: 0px;
 }
 
 html,
@@ -330,16 +332,14 @@ a:hover {
   border-bottom: 1px solid #bdc8d8;
 }
 
+/* The busy bar is fixed at the same `top` as this drawer and paints above it
+   (z-index 1201 vs the drawer's 1200), so it used to cover this header while a
+   search ran. Reserving its measured height as top padding keeps the heading
+   clear of it without moving the drawer or relaying out the results table. */
 .query-drawer-title {
   min-height: 46px;
-  padding: 8px 12px;
-}
-
-.query-provider-note {
-  padding: 8px 12px;
-  color: #183153;
-  background: #fff9dd;
-  border-bottom: 1px solid #ead88d;
+  padding: calc(8px + var(--annoq-busy-h, 0px)) 12px 8px;
+  align-items: flex-end;
 }
 
 .query-type-row {
@@ -917,4 +917,10 @@ a:hover {
   align-items: center;
   padding: 4px 12px;
   color: #183153;
+}
+
+.query-genome-build {
+  display: block;
+  color: rgba(0, 0, 0, 0.54);
+  font-style: italic;
 }

@@ -14,12 +14,7 @@ import { AboutPage, ContactPage, CookiePolicyPage, HomePage, NewsPage, VersionPa
 import { DocsPage } from './pages/DocsPage';
 import { SupportedAnnotationsPage } from './pages/SupportedAnnotationsPage';
 import { environment } from './lib/environment';
-
-declare global {
-  interface Window {
-    gtag?: (...args: unknown[]) => void;
-  }
-}
+import { trackEvent } from './lib/analytics';
 
 const nav = [
   { label: 'News', to: '/release' },
@@ -38,7 +33,7 @@ export default function App() {
   const isSearch = location.pathname === '/search';
 
   useEffect(() => {
-    window.gtag?.('event', 'page_view', {
+    trackEvent('page_view', {
       page_path: location.pathname + location.search,
       send_to: environment.googleAnalyticsId
     });

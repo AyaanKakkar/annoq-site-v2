@@ -62,13 +62,20 @@ export function HomePage() {
       <Container className="content-section">
         <Typography variant="h4" align="center" gutterBottom>Web Browser access</Typography>
         <Grid container spacing={3} sx={{ alignItems: 'center' }}>
-          <Grid size={{ xs: 12, md: 5 }}>
-            <img src="/assets/images/doctor-laptop.png" className="responsive-img" alt="" />
-          </Grid>
           <Grid size={{ xs: 12, md: 7 }}>
             <Typography variant="h5">Easy To Use Interactive Query to support researchers</Typography>
             <Typography>Web interface with categories to focus on annotations of interest for biomedical objectives.</Typography>
-            <Stack spacing={1.1} sx={{ mt: 2 }}>
+          </Grid>
+          <Grid size={{ xs: 12, md: 5 }}>
+            <img src="/assets/images/doctor-laptop.png" className="responsive-img" alt="" />
+          </Grid>
+        </Grid>
+        <Grid container spacing={3} sx={{ alignItems: 'center', mt: 1 }}>
+          <Grid size={{ xs: 12, md: 5 }}>
+            <img src="/assets/images/ui-query.png" className="responsive-img" alt="AnnoQ query interface" />
+          </Grid>
+          <Grid size={{ xs: 12, md: 7 }}>
+            <Stack spacing={1.1}>
               {[
                 ['Select annotations', 'Organized in tree structure'],
                 ['Choose Query Type', '5 types of supported queries'],

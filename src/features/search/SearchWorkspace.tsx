@@ -32,7 +32,9 @@ import {
   normalizeStatsResponse
 } from '../../lib/queryBuilder';
 import { defaultSelectionForStore } from '../../lib/annotations';
+import { trackEvent } from '../../lib/analytics';
 import { LOCKED_ANNOTATION_NAMES } from '../../lib/config';
+import { queryModeLabel } from '../../lib/queryModes';
 import { useAnnotationSelection } from '../annotations/AnnotationSelectionProvider';
 import { useAnnotations } from '../annotations/useAnnotations';
 import { useBusyWhile } from '../busy/busyState';
@@ -262,6 +264,11 @@ export function submitSearch(
   filters: string[],
   dispatch: ReturnType<typeof useSearchState>['dispatch']
 ) {
+  // Tracked here rather than in the component (v1 put it in
+  // annotation.component.submit) because this is the one funnel every search
+  // passes through. v1's `if (source.length > 0)` guard has no equivalent:
+  // chr and pos are locked, so an empty submission is unreachable (issue #4).
+  trackEvent('search_submit', { search_type: queryModeLabel(mode) });
   const request = buildRequest(mode, values, selectedAnnotationNames, filters);
   dispatch({ type: 'submit', request });
 }
