@@ -10,7 +10,7 @@ export function HomePage() {
   return (
     <Box>
       <Box className="free-banner">
-        <Button component={RouterLink} to="/release">AnnoQ Version 2.0-beta.1 Released</Button>
+        <Button component={RouterLink} to="/release">AnnoQ Version 1.3.1 Released</Button>
       </Box>
       <Box className="hero">
         <Container className="hero-inner">
@@ -201,7 +201,6 @@ export function AboutPage() {
       <li><strong>Queme, Bryan</strong> (PhD student, AnnoQ Development)</li>
       <li><strong>Muruganujan, Anushya</strong> (software engineer, GO and PANTHER data)</li>
       <li><strong>Ebert, Dustin</strong> (bioinformatics programmer, GO and PANTHER data)</li>
-      <li><strong>Ayaan Kakkar</strong> (masters student, software developer, AnnoQ API and website)</li>
       <li><strong>Mi, Huaiyu</strong> (Principal Investigator)</li>
     </ul>
     <Typography variant="h4">Past members</Typography>
@@ -209,7 +208,10 @@ export function AboutPage() {
       <li><strong>Liu, Zhu</strong> (PhD student, lead developer, Overall Architectect)</li>
       <li><strong>Mills, Caitlin</strong> (PhD student, PEREGRINE development)</li>
       <li><strong>Mushayahama, Tremayne</strong> (software engineer, AnnoQ Website)</li>
+      <li><strong>Ayaan Kakkar</strong> (masters student, software developer, AnnoQ API and website)</li>
       <li><strong>Akshala Bhatnagar</strong> (masters student, AnnoQ API)</li>
+     <li><strong>Ayaan Kakkar</strong> (masters student, software developer, AnnoQ API and website)</li>
+  
     </ul>
     <Typography variant="h4">Publication</Typography>
     <Typography>
