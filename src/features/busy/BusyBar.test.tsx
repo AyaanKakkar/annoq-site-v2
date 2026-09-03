@@ -1,5 +1,5 @@
 import { render, screen, act } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { BusyBar } from './BusyBar';
 import { BusyProvider, useBusy } from './busyState';
 
@@ -51,5 +51,29 @@ describe('BusyBar', () => {
     });
     act(() => end());
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
+  });
+});
+
+// The bar is fixed at the same `top` as the query drawer and paints above it,
+// so anything that must stay clear of it needs its height. Idle must report 0px
+// or the drawer header would keep padding for a bar that is not there.
+describe('BusyBar height publication', () => {
+  const readVar = () => document.documentElement.style.getPropertyValue('--annoq-busy-h');
+
+  it('publishes its measured height while busy and zero once idle', () => {
+    const rect = vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect');
+    rect.mockReturnValue({ height: 30 } as DOMRect);
+    setup();
+    expect(readVar()).toBe('0px');
+
+    let end!: () => void;
+    act(() => {
+      end = controls.begin('Searching annotations…');
+    });
+    expect(readVar()).toBe('30px');
+
+    act(() => end());
+    expect(readVar()).toBe('0px');
+    rect.mockRestore();
   });
 });

@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { buildAnnotationStore } from '../../lib/annotations';
 import type { Annotation } from '../../types';
 import { AnnotationSelectionProvider, useAnnotationSelection } from '../annotations/AnnotationSelectionProvider';
@@ -58,5 +58,67 @@ describe('QueryDrawer submit', () => {
     selectAnnotation();
     submit();
     expect(onSubmitted).toHaveBeenCalledTimes(1);
+  });
+});
+
+// Export/Upload/Clear/Submit were tracked in v1 (issue #59) and must keep
+// firing with the same names and params — v2 reports to the same GA property.
+describe('QueryDrawer analytics', () => {
+  const gtag = vi.fn();
+
+  beforeEach(() => {
+    gtag.mockClear();
+    window.gtag = gtag;
+    URL.createObjectURL = vi.fn(() => 'blob:stub');
+    URL.revokeObjectURL = vi.fn();
+  });
+
+  afterEach(() => {
+    delete window.gtag;
+  });
+
+  it('fires search_submit with the v1 label, not the mode value', () => {
+    const { submit } = renderDrawer();
+    submit();
+    expect(gtag).toHaveBeenCalledWith('event', 'search_submit', { search_type: 'Chromosome' });
+  });
+
+  it('fires export_config for the search page', () => {
+    renderDrawer();
+    fireEvent.click(screen.getByRole('button', { name: 'Export' }));
+    expect(gtag).toHaveBeenCalledWith('event', 'export_config', { page_path: '/search' });
+  });
+
+  it('fires clear_selection for the search page', () => {
+    renderDrawer();
+    fireEvent.click(screen.getByRole('button', { name: 'Clear Selection' }));
+    expect(gtag).toHaveBeenCalledWith('event', 'clear_selection', { page_path: '/search' });
+  });
+});
+
+// v1 issue #88 put this in the Input Query heading, right after "(Selected: …)".
+describe('QueryDrawer genome build', () => {
+  it('states the genome build the dataset is based on', () => {
+    renderDrawer();
+    expect(screen.getByText('AnnoQ is based on GRCh37/hg19')).toBeInTheDocument();
+  });
+});
+
+describe('QueryDrawer header', () => {
+  // "Chromosome" also renders inside the Query Type select, so assert on the
+  // heading row itself rather than on the bare label text.
+  it('names the active query type in the heading', () => {
+    renderDrawer();
+    const heading = screen.getByText('Input Query:');
+    expect(heading.parentElement).toHaveTextContent('Input Query:Chromosome');
+    expect(screen.queryByText(/^Selected:/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/^Search:/)).not.toBeInTheDocument();
+  });
+
+  it('no longer carries the IMAGE Project provider note', () => {
+    renderDrawer();
+    expect(
+      screen.queryByText(/Variants Annotation Query Provided by IMAGE Project/)
+    ).not.toBeInTheDocument();
   });
 });

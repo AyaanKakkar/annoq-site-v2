@@ -19,6 +19,7 @@ import { useMemo, useRef, useState } from 'react';
 import { AnnotationTree } from '../features/annotations/AnnotationTree';
 import { useAnnotationSelection } from '../features/annotations/AnnotationSelectionProvider';
 import { useAnnotations } from '../features/annotations/useAnnotations';
+import { trackEvent } from '../lib/analytics';
 import { downloadText, parseConfig } from '../lib/files';
 
 export function SupportedAnnotationsPage() {
@@ -35,6 +36,9 @@ export function SupportedAnnotationsPage() {
   );
 
   async function uploadConfig(file?: File) {
+    // On file change, matching v1's (change) binding — a cancelled file dialog
+    // was never counted.
+    trackEvent('upload_config', { page_path: '/detail' });
     try {
       setError('');
       if (!file || !store) return;
@@ -65,10 +69,16 @@ export function SupportedAnnotationsPage() {
           {tab === 'annotations' ? (
           <>
           <Stack direction="row" spacing={1} className="supported-actions">
-            <Button variant="outlined" onClick={() => setSelected([])}>Clear Selection</Button>
+            <Button variant="outlined" onClick={() => {
+              trackEvent('clear_selection', { page_path: '/detail' });
+              setSelected([]);
+            }}>Clear Selection</Button>
             <Button variant="outlined" onClick={() => input.current?.click()}>Upload Config</Button>
             <input ref={input} hidden type="file" onChange={(event) => void uploadConfig(event.target.files?.[0])} />
-            <Button variant="contained" onClick={() => downloadText('config.txt', JSON.stringify({ _source: selected }))}>Export Config</Button>
+            <Button variant="contained" onClick={() => {
+              trackEvent('export_config', { page_path: '/detail' });
+              downloadText('config.txt', JSON.stringify({ _source: selected }));
+            }}>Export Config</Button>
           </Stack>
           <Box className="supported-tree">
             <AnnotationTree store={store} selected={selected} onSelectedChange={setSelected} showDescriptions />

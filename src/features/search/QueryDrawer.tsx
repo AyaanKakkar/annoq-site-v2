@@ -23,19 +23,10 @@ import { useSearchState } from './searchState';
 import { useAnnotationSelection } from '../annotations/AnnotationSelectionProvider';
 import { SAMPLE_RSID_LIST, SAMPLE_VCF } from '../../data/samples';
 import { downloadText, parseConfig } from '../../lib/files';
-import { ENABLE_KEYWORD_SEARCH } from '../../lib/config';
+import { trackEvent } from '../../lib/analytics';
+import { ENABLE_KEYWORD_SEARCH, GENOME_BUILD } from '../../lib/config';
+import { QUERY_MODES, queryModeLabel } from '../../lib/queryModes';
 import { submitSearch } from './SearchWorkspace';
-
-const allModes: Array<{ value: QueryMode; label: string }> = [
-  { value: 'chromosome', label: 'Chromosome' },
-  { value: 'vcf', label: 'VCF File' },
-  { value: 'geneProduct', label: 'Gene Product' },
-  { value: 'rsID', label: 'rsID' },
-  { value: 'rsIDList', label: 'rsID List' },
-  { value: 'keyword', label: 'Keyword Search' }
-];
-
-const modes = allModes.filter((item) => ENABLE_KEYWORD_SEARCH || item.value !== 'keyword');
 
 export function QueryDrawer({
   store,
@@ -87,6 +78,10 @@ export function QueryDrawer({
   }
 
   async function onConfigChange(file?: File) {
+    // Fired on file change, not on the button that opens the picker: v1 bound
+    // trackUploadConfig to the input's (change) event, so a cancelled file
+    // dialog was never counted.
+    trackEvent('upload_config', { page_path: '/search' });
     setConfigError('');
     try {
       const source = parseConfig(await readTextFile(file));
@@ -108,20 +103,19 @@ export function QueryDrawer({
 
   return (
     <Box className="drawer-body">
-      <Stack className="drawer-header query-drawer-title" direction="row" sx={{ alignItems: 'center' }}>
+      <Stack className="drawer-header query-drawer-title" direction="row" sx={{ alignItems: 'flex-end' }}>
         <Box>
-          <Typography variant="subtitle2">Input Query</Typography>
-          <Typography variant="caption" className="muted">Selected: {modes.find((item) => item.value === mode)?.label}</Typography>
+          <Typography variant="caption" className="query-genome-build">AnnoQ is based on {GENOME_BUILD}</Typography>
+          <Stack direction="row" spacing={1} sx={{ alignItems: 'baseline' }}>
+            <Typography variant="subtitle2">Input Query:</Typography>
+            <Typography variant="caption" className="muted">{queryModeLabel(mode)}</Typography>
+          </Stack>
         </Box>
         <Box sx={{ flex: 1 }} />
         <IconButton size="small" onClick={onClose} aria-label="Close query form">
           <CloseIcon fontSize="small" />
         </IconButton>
       </Stack>
-
-      <Box className="query-provider-note">
-        <Typography variant="caption">Variants Annotation Query Provided by IMAGE Project</Typography>
-      </Box>
 
       <Stack className="query-type-row" direction="row" sx={{ alignItems: 'center' }}>
         <Typography variant="subtitle2">Query Type</Typography>
@@ -132,8 +126,8 @@ export function QueryDrawer({
             value={mode}
             onChange={(event) => changeMode(event.target.value as QueryMode)}
           >
-            {modes.map((mode) => (
-              <MenuItem key={mode.value} value={mode.value}>{mode.label}</MenuItem>
+            {QUERY_MODES.map((option) => (
+              <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>
             ))}
           </Select>
         </FormControl>
@@ -212,7 +206,10 @@ export function QueryDrawer({
       <Stack className="drawer-header" direction="row" sx={{ alignItems: 'center' }}>
         <Typography variant="subtitle2">Select Annotations</Typography>
         <Box sx={{ flex: 1 }} />
-        <Button size="small" onClick={() => annotationSelection.setSelected([])}>Clear Selection</Button>
+        <Button size="small" onClick={() => {
+          trackEvent('clear_selection', { page_path: '/search' });
+          annotationSelection.setSelected([]);
+        }}>Clear Selection</Button>
       </Stack>
       <Box className="annotation-tree-wrap">
         <AnnotationTree
@@ -227,7 +224,10 @@ export function QueryDrawer({
       <Stack className="drawer-footer" direction="row" spacing={1}>
         <Button size="small" variant="outlined" onClick={() => fileRef.current?.click()}>Upload Config</Button>
         <input ref={fileRef} hidden type="file" onChange={(event) => void onConfigChange(event.target.files?.[0])} />
-        <Button size="small" variant="outlined" startIcon={<SaveAltIcon />} onClick={() => downloadText('config.txt', JSON.stringify({ _source: annotationSelection.selected }))}>Export</Button>
+        <Button size="small" variant="outlined" startIcon={<SaveAltIcon />} onClick={() => {
+          trackEvent('export_config', { page_path: '/search' });
+          downloadText('config.txt', JSON.stringify({ _source: annotationSelection.selected }));
+        }}>Export</Button>
         <Box sx={{ flex: 1 }} />
         <Button size="small" variant="contained" onClick={submit}>Submit</Button>
       </Stack>

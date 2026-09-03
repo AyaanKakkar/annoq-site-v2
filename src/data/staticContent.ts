@@ -33,6 +33,12 @@ export type ReleaseInfo = {
 };
 
 export const releases: ReleaseInfo[] = [
+   {
+    date: 'September 4, 2026',
+    title: 'New Web Client',
+    version: '1.3.1',
+    description: [{ heading: 'Software Update', items: ['The web client has been updated to use the React framework', 'The Query UI results table has functionality to pin columns', 'Display optimization for Query UI results table'] }]
+  },
   {
     date: 'March 10, 2026',
     title: 'TopMed Freeze 8 release',
