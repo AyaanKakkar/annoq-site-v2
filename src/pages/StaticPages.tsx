@@ -1,5 +1,3 @@
-import ArticleIcon from '@mui/icons-material/Article';
-import CodeIcon from '@mui/icons-material/Code';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { Box, Button, Container, Grid, Link, Paper, Stack, Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
@@ -104,9 +102,27 @@ export function HomePage() {
             Query for SNP annotations using the command-line API, Python library or R Package
           </Typography>
           <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Feature icon={<CodeIcon />} title="API Data Access" text="Retrieve annotation data via command line scripts." to="/docs/services" />
-            <Feature icon={<CodeIcon />} title="Python library" text="Retrieve annotations using a Python library." to="/docs/tutorials/annoq-py" />
-            <Feature icon={<ArticleIcon />} title="R Package" text="Getting annotation data via R programming language." to="/docs/tutorials/r-package" />
+            <Feature
+              icon={<img src="/assets/images/swagger.svg" alt="Swagger" />}
+              iconHref="https://api-v2.annoq.org/docs"
+              title="API Data Access"
+              text="Retrieve annotation data via command line scripts."
+              to="/docs/services"
+            />
+            <Feature
+              icon={<img src="/assets/images/python.svg" alt="Python" />}
+              iconHref="https://github.com/USCbiostats/annoq-py"
+              title="Python library"
+              text="Retrieve annotations using a Python library."
+              to="/docs/tutorials/annoq-py"
+            />
+            <Feature
+              icon={<img src="/assets/images/r-package.svg" alt="R" />}
+              iconHref="https://github.com/USCbiostats/AnnoQR"
+              title="R Package"
+              text="Getting annotation data via R programming language."
+              to="/docs/tutorials/r-package"
+            />
           </Grid>
         </Container>
       </Box>
@@ -156,11 +172,35 @@ export function HomePage() {
   );
 }
 
-function Feature({ icon, title, text, to }: { icon: React.ReactNode; title: string; text: string; to: string }) {
+/**
+ * `iconHref` sends the icon somewhere the "View Details" button does not: the
+ * project itself (Swagger docs, the annoq-py and AnnoQR repositories), rather
+ * than a second route to the same docs page. Issue #19.
+ */
+function Feature({ icon, iconHref, title, text, to }: {
+  icon: React.ReactNode;
+  iconHref?: string;
+  title: string;
+  text: string;
+  to: string;
+}) {
+  const glyph = icon || <CheckCircleIcon />;
   return (
     <Grid size={{ xs: 12, md: 4 }}>
       <Paper className="feature-card">
-        <Box className="feature-icon">{icon || <CheckCircleIcon />}</Box>
+        {iconHref ? (
+          <Link
+            className="feature-icon feature-icon-logo"
+            href={iconHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`${title} project site`}
+          >
+            {glyph}
+          </Link>
+        ) : (
+          <Box className="feature-icon">{glyph}</Box>
+        )}
         <Typography variant="h6">{title}</Typography>
         <Typography>{text}</Typography>
         <Button component={RouterLink} to={to} variant="outlined">View Details</Button>

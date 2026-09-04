@@ -38,7 +38,9 @@ Major sections:
 - Variant/annotation stat cards.
 - TOPMed section.
 - Web Browser Access workflow.
-- Additional Programmatic Access.
+- Additional Programmatic Access. Each card's icon is a brand logo
+  (`swagger.svg`, `python.svg`, `r-package.svg`) linking out to that project;
+  the card's button still goes to the internal docs route (issue #19).
 - Publication.
 - Trusted resources.
 - Browser compatibility table.
@@ -118,6 +120,21 @@ Custom renderers:
 - Images: constrained with `.docs-media`.
 - Iframes: rendered and constrained with `.docs-iframe`.
 - Headings/paragraphs: converted to MUI typography.
+
+`a`, `p`, and `img` forward `className` from the source; `a` also forwards
+`target` and `rel`. That is what lets a raw HTML block in a `.md` file be
+styled and opened in a new tab -- without it the renderer silently drops those
+attributes. On `img` an explicit class *replaces* `docs-media` rather than
+joining it, so a small inline logo does not inherit the centred full-width
+figure layout.
+
+### API callout
+
+`/docs/services` and `/docs/services/api` open with a `.docs-callout` block
+(raw HTML in the markdown, styles in `src/styles.css`) carrying the Swagger
+logo and a button-styled link to `https://api-v2.annoq.org/docs`. Hardcoded,
+not derived from `API_BASE`: these files are static assets served outside the
+app's config. Issue #19.
 
 ## Adding A Docs Page
 

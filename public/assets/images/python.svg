@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Python">
+  <title>Python</title>
+  <path fill="#3776AB" d="M11 1 H21 A5 5 0 0 1 26 6 V11 H16 V21 H11 A5 5 0 0 1 6 16 V6 A5 5 0 0 1 11 1 Z"/>
+  <circle cx="11.5" cy="6" r="1.7" fill="#fff"/>
+  <path fill="#FFD43B" d="M21 31 H11 A5 5 0 0 1 6 26 V21 H16 V11 H21 A5 5 0 0 1 26 16 V26 A5 5 0 0 1 21 31 Z"/>
+  <circle cx="20.5" cy="26" r="1.7" fill="#fff"/>
+</svg>
