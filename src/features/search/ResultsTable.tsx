@@ -1,6 +1,7 @@
 import BarChartIcon from '@mui/icons-material/BarChart';
 import DownloadIcon from '@mui/icons-material/Download';
 import FilterListIcon from '@mui/icons-material/FilterList';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import PushPinIcon from '@mui/icons-material/PushPin';
 import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
 import {
@@ -8,6 +9,7 @@ import {
   Button,
   Chip,
   IconButton,
+  Link,
   Pagination,
   Stack,
   Tooltip,
@@ -16,7 +18,7 @@ import {
 import { memo, useEffect, useMemo, useState, useTransition } from 'react';
 import { graphqlRequest } from '../../lib/api';
 import { labelFor } from '../../lib/annotations';
-import { API_BASE, PAGE_SIZE } from '../../lib/config';
+import { API_BASE, API_DOCS_URL, DOWNLOAD_ROW_LIMIT, PAGE_SIZE } from '../../lib/config';
 import { formatCell } from '../../lib/formatters';
 import { buildDownloadQuery } from '../../lib/queryBuilder';
 import { useBusy, useBusyWhile } from '../busy/busyState';
@@ -131,6 +133,7 @@ export function ResultsTable() {
     return <Box className="empty-state">{state.loading ? 'Loading results...' : 'No Results'}</Box>;
   }
 
+  const downloadTooLarge = result.total > DOWNLOAD_ROW_LIMIT;
   const totalPages = Math.max(1, Math.ceil(result.total / PAGE_SIZE));
   const rowStart = result.total === 0 ? 0 : (result.page - 1) * PAGE_SIZE + 1;
   const rowEnd = Math.min(result.page * PAGE_SIZE, result.total);
@@ -151,7 +154,46 @@ export function ResultsTable() {
           )}
         </Stack>
         <Box sx={{ flex: 1 }} />
-        <Button size="small" variant="contained" startIcon={<DownloadIcon />} onClick={() => void download()}>Download</Button>
+        <Tooltip
+          title={
+            <>
+              {downloadTooLarge
+                ? `This result set is too large to download (over ${DOWNLOAD_ROW_LIMIT.toLocaleString()} rows).`
+                : `Downloads are limited to ${DOWNLOAD_ROW_LIMIT.toLocaleString()} rows.`}
+              {' Use the '}
+              <Link href={API_DOCS_URL} target="_blank" rel="noopener noreferrer" color="inherit">AnnoQ API</Link>
+              {downloadTooLarge ? ' instead.' : ' for larger result sets.'}
+            </>
+          }
+        >
+          {/*
+            An anchor, not a plain icon: the tooltip is the only place the limit
+            is explained, and a hover-only target leaves it unreachable by
+            keyboard. Hanging it off the Download button instead would not work
+            at all -- MUI disabled buttons swallow the pointer events a tooltip
+            listens for, so the message would vanish exactly when it is needed.
+          */}
+          <IconButton
+            size="small"
+            className="table-icon-button"
+            component="a"
+            href={API_DOCS_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Use the AnnoQ API for large downloads"
+          >
+            <InfoOutlinedIcon fontSize="inherit" />
+          </IconButton>
+        </Tooltip>
+        <Button
+          size="small"
+          variant="contained"
+          startIcon={<DownloadIcon />}
+          disabled={downloadTooLarge}
+          onClick={() => void download()}
+        >
+          Download
+        </Button>
       </Stack>
       {state.filters.length > 0 && (
         <Stack direction="row" spacing={0.75} className="active-filter-bar">

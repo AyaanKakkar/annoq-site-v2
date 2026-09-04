@@ -270,3 +270,13 @@ The backend returns a path. The frontend opens:
 ```
 
 The `fields` argument must be sent as a GraphQL list, not as a quoted string.
+
+### Row limit
+
+The button is disabled when `result.total` is strictly over `DOWNLOAD_ROW_LIMIT`
+(`src/lib/config.ts`, 1,000,000). An info icon sits in front of it and is always
+rendered, whether or not the limit is hit; its tooltip links to `API_DOCS_URL`
+(`{API_BASE}/docs`) for bulk extraction.
+
+The explanation hangs off that icon rather than off the Download button because
+MUI disabled buttons swallow the pointer events a tooltip listens for.

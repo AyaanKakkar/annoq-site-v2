@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { useEffect } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { buildAnnotationStore } from '../../lib/annotations';
+import { API_BASE, DOWNLOAD_ROW_LIMIT } from '../../lib/config';
 import { BusyProvider } from '../busy/busyState';
 import { initialSearchState, SearchProvider, useSearchState } from './searchState';
 import { ViewAllProvider } from './ViewAllDialog';
@@ -36,13 +37,27 @@ const result: ResultPage = {
 
 // The table only renders once a page has landed, so drive the reducer through
 // the same submit -> pageSuccess sequence the workspace uses.
-function SeedResult() {
+function SeedResult({ total }: { total?: number } = {}) {
   const { dispatch } = useSearchState();
   useEffect(() => {
     dispatch({ type: 'submit', request });
-    dispatch({ type: 'pageSuccess', requestId: 1, result });
-  }, [dispatch]);
+    dispatch({ type: 'pageSuccess', requestId: 1, result: total === undefined ? result : { ...result, total } });
+  }, [dispatch, total]);
   return null;
+}
+
+async function renderTable(total?: number) {
+  const { ResultsTable } = await import('./ResultsTable');
+  render(
+    <BusyProvider>
+      <SearchProvider>
+        <ViewAllProvider>
+          <SeedResult total={total} />
+          <ResultsTable />
+        </ViewAllProvider>
+      </SearchProvider>
+    </BusyProvider>
+  );
 }
 
 beforeEach(() => {
@@ -68,5 +83,27 @@ describe('results table keyboard scrolling', () => {
     // Chrome and Safari will not focus a scrollable div without this, which is
     // why issue #3 left the mouse as the only way through the results.
     expect(region).toHaveAttribute('tabindex', '0');
+  });
+});
+
+describe('download row limit (issue #20)', () => {
+  it('always offers a link to the API docs beside the download button', async () => {
+    await renderTable();
+
+    const link = screen.getByRole('link', { name: /large downloads/i });
+    expect(link).toHaveAttribute('href', `${API_BASE}/docs`);
+    expect(link).toHaveAttribute('target', '_blank');
+  });
+
+  it('still allows a download at exactly the limit', async () => {
+    await renderTable(DOWNLOAD_ROW_LIMIT);
+
+    expect(screen.getByRole('button', { name: 'Download' })).toBeEnabled();
+  });
+
+  it('disables the download button one row over the limit', async () => {
+    await renderTable(DOWNLOAD_ROW_LIMIT + 1);
+
+    expect(screen.getByRole('button', { name: 'Download' })).toBeDisabled();
   });
 });
