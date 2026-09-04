@@ -61,16 +61,22 @@ export function DocsPage() {
               remarkPlugins={[remarkGfm]}
               rehypePlugins={[rehypeRaw]}
               components={{
-                a: ({ href, children }) => {
+                // className, target, and rel are forwarded, not dropped: the
+                // markdown files carry raw HTML blocks (the API callout) whose
+                // styling and new-tab behaviour live on the tags themselves.
+                // Defaults are unchanged, so plain markdown links behave as before.
+                a: ({ href, children, className, target, rel }) => {
                   if (!href || href.startsWith('http') || href.startsWith('mailto:') || href.startsWith('#')) {
-                    return <Link href={href}>{children}</Link>;
+                    return <Link href={href} className={className} target={target} rel={rel}>{children}</Link>;
                   }
-                  return <Link component="button" onClick={() => navigate(href)}>{children}</Link>;
+                  return <Link component="button" className={className} onClick={() => navigate(href)}>{children}</Link>;
                 },
                 h1: ({ children }) => <Typography variant="h3" gutterBottom>{children}</Typography>,
                 h2: ({ children }) => <Typography variant="h4" gutterBottom>{children}</Typography>,
-                p: ({ children }) => <Typography component="p" sx={{ mb: 2 }}>{children}</Typography>,
-                img: ({ src, alt }) => <img className="docs-media" src={src} alt={alt ?? ''} />,
+                p: ({ children, className }) => <Typography component="p" className={className} sx={{ mb: 2 }}>{children}</Typography>,
+                // An explicit class replaces `docs-media` rather than joining it:
+                // the callout logo must not inherit its full-width centred block layout.
+                img: ({ src, alt, className }) => <img className={className ?? 'docs-media'} src={src} alt={alt ?? ''} />,
                 iframe: (props) => <iframe className="docs-iframe" {...props} />
               }}
             >

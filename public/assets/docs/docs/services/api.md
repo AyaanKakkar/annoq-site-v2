@@ -2,6 +2,15 @@
 
 > This page documents how to query AnnoQ using the API
 
+<div class="docs-callout">
+  <a class="docs-callout-media" href="https://api-v2.annoq.org/docs" target="_blank" rel="noopener noreferrer"><img class="docs-callout-logo" src="/assets/images/swagger.svg" alt="Swagger" /></a>
+  <div class="docs-callout-body">
+    <p class="docs-callout-title">AnnoQ REST API</p>
+    <p class="docs-callout-text">Browse every end point, inspect the request and response schemas, and run live queries from the interactive Swagger documentation.</p>
+    <a class="docs-callout-action" href="https://api-v2.annoq.org/docs" target="_blank" rel="noopener noreferrer">Open the API documentation</a>
+  </div>
+</div>
+
 The AnnoQ API implementation and its associated Swagger documentation are available at [https://api-v2.annoq.org/docs](https://api-v2.annoq.org/docs).
 
 The API provides access to AnnoQ's rich annotations for Human SNPs from the [Haplotype Reference Consortium](https://www.sanger.ac.uk/collaboration/haplotype-reference-consortium/).  The end-points can be utilized independently or as part of large workflows to analyze and make coorelations on large data sets. A SNP (single nucleotide polymorphism) by definition is a genomic variant at a single base position in the DNA.  Each SNP in the system can be uniquely identified by the chromosome, its position, the reference nucleotide and the alternate nucleotide or its RSID (Reference SNP cluster ID).  Note, SNP's are not defined for all positions of the chromosome, but, a given chromosome and position, can have more than one SNP. Indels are not supported.

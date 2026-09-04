@@ -2,6 +2,12 @@ import { environment } from './environment';
 
 export const API_BASE = environment.annotationApiV2;
 export const GRAPHQL_URL = `${API_BASE}/graphql`;
+/**
+ * Derived, not the literal `https://api-v2.annoq.org/docs` named in issue #20:
+ * `API_BASE` is configurable (`VITE_ANNOQ_API_V2`, e.g. the TOPMed stack), and
+ * a hardcoded link would document an API the user is not querying.
+ */
+export const API_DOCS_URL = `${API_BASE}/docs`;
 export const PAGE_SIZE = environment.snpResultsSize;
 /**
  * Annotations the user cannot deselect (issue #4). They identify the variant,
@@ -18,6 +24,13 @@ export const PAGE_SIZE = environment.snpResultsSize;
  * both stacks.
  */
 export const LOCKED_ANNOTATION_NAMES = ['chr', 'pos'];
+/**
+ * Issue #20. Result sets larger than this are not downloadable from the site --
+ * the download endpoint has to materialise the whole set as one file. The
+ * results header points those users at the API instead. Strictly over: a result
+ * set of exactly this many rows still downloads.
+ */
+export const DOWNLOAD_ROW_LIMIT = 1_000_000;
 export const ENABLE_KEYWORD_SEARCH = false;
 export const TERMS_DISPLAYED_SIZE = environment.termsDisplayedSize;
 export const GENES_DISPLAYED_SIZE = environment.genesDisplayedSize;

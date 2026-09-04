@@ -18,3 +18,32 @@ describe('HomePage web browser access section', () => {
     );
   });
 });
+
+describe('programmatic access icons (issue #19)', () => {
+  it('shows a brand logo per card, each linking to its own project', () => {
+    render(<MemoryRouter><HomePage /></MemoryRouter>);
+
+    const expected = [
+      ['Swagger', '/assets/images/swagger.svg', 'https://api-v2.annoq.org/docs'],
+      ['Python', '/assets/images/python.svg', 'https://github.com/USCbiostats/annoq-py'],
+      ['R', '/assets/images/r-package.svg', 'https://github.com/USCbiostats/AnnoQR']
+    ];
+
+    for (const [alt, src, href] of expected) {
+      const logo = screen.getByAltText(alt);
+      expect(logo).toHaveAttribute('src', src);
+      // The icon is the link, not just decoration inside one.
+      const link = logo.closest('a');
+      expect(link).toHaveAttribute('href', href);
+      expect(link).toHaveAttribute('target', '_blank');
+      expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+    }
+  });
+
+  it('keeps the View Details buttons pointing at the internal docs', () => {
+    render(<MemoryRouter><HomePage /></MemoryRouter>);
+
+    const routes = screen.getAllByRole('link', { name: 'View Details' }).map((link) => link.getAttribute('href'));
+    expect(routes).toEqual(['/docs/services', '/docs/tutorials/annoq-py', '/docs/tutorials/r-package']);
+  });
+});
