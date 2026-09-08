@@ -11,8 +11,11 @@
 | TOPMed (beta) | TOPMed Freeze 8 | `https://api-v2.topmed.annoq.org` | [topmed.annoq.org](https://topmed.annoq.org) — `annoq-site` (Angular 9) | Beta |
 
 `annoq-site`, the Angular 9 app this repository replaces, no longer serves annoq.org. It remains the
-TOPMed beta UI at topmed.annoq.org pending that stack's cutover to v2. Until then, stage-4 UI work
-generally has to land in **both** site repos.
+TOPMed beta UI at topmed.annoq.org pending the cutover — tracked by
+[annoq-site#78](https://github.com/USCbiostats/annoq-site/issues/78) ("Integrate TopMed website into
+Annoq.org"), the umbrella issue, in progress on that repo's `issue-78-*` branch line. The end state
+is a **single site serving TOPMed with HRC as a filter**, so HRC and TOPMed stop
+being two deployments. Until then, stage-4 UI work generally has to land in **both** site repos.
 
 Both deployed datasets currently contain SNPs only — no indels.
 

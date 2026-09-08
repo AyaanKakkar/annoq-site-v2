@@ -7,6 +7,7 @@ This file maps the repository by folder and explains what each area owns.
 ```text
 annoq-site-v2/
   docs/
+  metadata/
   public/
   src/
   index.html
@@ -19,6 +20,17 @@ annoq-site-v2/
 
 `graphql_codegen.ts` configures `npm run graphql_codegen`, which regenerates
 `src/generated/graphql.ts` from the live backend schema.
+
+## `metadata/`
+
+`annotation_tree.csv` — the hand-maintained source of truth for the AnnoQ annotation tree, plus its
+`README.md`. **Not used by the app at runtime**: the tree the UI renders is built from the api-v2
+response in `src/lib/annotations.ts`. This directory is build-time input for
+[annoq-data-builder](https://github.com/USCbiostats/annoq-data-builder), which generates
+`anno_tree.json`, `api_mapping_anno_tree.json`, `annoq_mappings.json` and `doc_type.pkl` from it.
+
+Replicated from `annoq-site/metadata` and **not yet canonical** — see
+[`metadata/README.md`](../metadata/README.md) for the migration status.
 
 ## `docs/`
 
