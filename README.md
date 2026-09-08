@@ -1,5 +1,34 @@
 # Annoq Site
 
+**Status: released.** This repository is the production AnnoQ web UI: it is deployed at
+**[annoq.org](https://annoq.org)** and serves the HRC r1.1 dataset. It is stage 4 of the HRC stack
+(`annoq-data-builder` -> `annoq-database` -> `annoq-api-v2` -> `annoq-site-v2`), documented in
+[USCbiostats/annoq-proj](https://github.com/USCbiostats/annoq-proj).
+
+| Stack | Dataset | API | Site | Status |
+| --- | --- | --- | --- | --- |
+| HRC (production) | HRC r1.1 | `https://api-v2.annoq.org` | [annoq.org](https://annoq.org) — this repo (`annoq-site-v2`, React) | Live |
+| TOPMed (beta) | TOPMed Freeze 8 | `https://api-v2.topmed.annoq.org` | [topmed.annoq.org](https://topmed.annoq.org) — `annoq-site` (Angular 9) | Beta |
+
+`annoq-site`, the Angular 9 app this repository replaces, no longer serves annoq.org. It remains the
+TOPMed beta UI at topmed.annoq.org pending that stack's cutover to v2. Until then, stage-4 UI work
+generally has to land in **both** site repos.
+
+Both deployed datasets currently contain SNPs only — no indels.
+
+### A note on branches
+
+annoq-proj describes the two stacks as separate "branch lines" (`main` for HRC, a `TopMed` branch for
+TOPMed). Only the first half holds: as of 2026-09-08 no `TopMed` ref exists on any ANNOQ repo, and
+`main` is this repository's default branch alone — `annoq-site`, `annoq-api-v2`, `annoq-database`, and
+`annoq-data-builder` all still default to `master`. The TOPMed work sits on issue branches instead
+(`issue-19-load-topmed` in `annoq-site`; `annoq-site-19-add-update-metadata-for-top-med-data` in the
+api, database, and data-builder repos). Check the current ref before assuming a name:
+
+```bash
+git ls-remote --heads https://github.com/USCbiostats/annoq-site.git
+```
+
 ## Prerequisites
 
 Node.js version 20.0.0 or higher

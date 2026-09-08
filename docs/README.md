@@ -1,6 +1,12 @@
 # AnnoQ Site V2 Repository Guide
 
-This folder documents the React port of the AnnoQ website. It is meant for a developer who has never seen the project before and needs to understand what the site does, where the code lives, and how the main flows work.
+This folder documents the React app that is now the AnnoQ website in production. It is meant for a developer who has never seen the project before and needs to understand what the site does, where the code lives, and how the main flows work.
+
+**Status: released.** This React app is the deployed production UI at [annoq.org](https://annoq.org),
+serving the HRC r1.1 dataset via `https://api-v2.annoq.org`. The Angular 9 app it replaces
+(`annoq-site`) remains the TOPMed beta UI at [topmed.annoq.org](https://topmed.annoq.org) pending
+that stack's cutover. See the [top-level README](../README.md#annoq-site) for the stack table;
+`scripts/update_site_nginx.sh` publishes a build to the nginx document root.
 
 ## What This Site Is
 
