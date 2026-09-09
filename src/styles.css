@@ -56,7 +56,15 @@ a:hover {
 
 .main-appbar {
   border-bottom: 1px solid #d5deea;
-  background: rgba(255, 255, 255, 0.98) !important;
+  /* Amber while the site serves the TOPMed beta (annoq-site#78). Revert to
+     rgba(255, 255, 255, 0.98) at cutover, together with the beta label. */
+  background: #fff3cd !important;
+}
+
+.beta-label {
+  white-space: nowrap;
+  color: #183153;
+  font-weight: 800;
 }
 
 .main-toolbar {
@@ -370,6 +378,18 @@ a:hover {
   border-bottom: 1px solid #d8dee8;
   background: #fbfcfe;
   gap: 14px;
+}
+
+.query-hrc-row {
+  padding: 10px 12px;
+  border-bottom: 1px solid #d8dee8;
+  background: #fbfcfe;
+}
+
+.query-hrc-hint {
+  display: block;
+  color: rgba(0, 0, 0, 0.54);
+  font-style: italic;
 }
 
 .query-form-section {

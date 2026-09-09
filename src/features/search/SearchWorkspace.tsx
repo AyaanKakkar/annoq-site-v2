@@ -90,7 +90,7 @@ export function SearchWorkspace() {
         let gene: ResultPage['gene'];
         if (request.mode === 'geneProduct') {
           const geneData = await graphqlRequest<{ geneInfo?: ResultPage['gene'] }>(
-            buildGeneInfoQuery(request.values.geneProduct),
+            buildGeneInfoQuery(request.values.geneProduct, request.searchHRC),
             controller.signal
           );
           gene = geneData.geneInfo;
@@ -262,6 +262,7 @@ export function submitSearch(
   values: ReturnType<typeof useSearchState>['state']['values'],
   selectedAnnotationNames: string[],
   filters: string[],
+  searchHRC: boolean,
   dispatch: ReturnType<typeof useSearchState>['dispatch']
 ) {
   // Tracked here rather than in the component (v1 put it in
@@ -269,7 +270,7 @@ export function submitSearch(
   // passes through. v1's `if (source.length > 0)` guard has no equivalent:
   // chr and pos are locked, so an empty submission is unreachable (issue #4).
   trackEvent('search_submit', { search_type: queryModeLabel(mode) });
-  const request = buildRequest(mode, values, selectedAnnotationNames, filters);
+  const request = buildRequest(mode, values, selectedAnnotationNames, filters, searchHRC);
   dispatch({ type: 'submit', request });
 }
 

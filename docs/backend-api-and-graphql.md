@@ -17,8 +17,11 @@ src/lib/config.ts
 Default backend:
 
 ```text
-https://api-v2.annoq.org
+https://api-v2-dev.topmed.annoq.org
 ```
+
+This branch (annoq-site#78) targets the **dev** TOPMed api-v2 — the only instance carrying the
+`search_hrc` argument until the TOPMed cutover, when it becomes `https://api-v2.topmed.annoq.org`.
 
 Relevant environment variables:
 
@@ -239,3 +242,23 @@ The frontend opens:
 ```
 
 This matches the old Angular behavior.
+
+## The `search_hrc` argument (annoq-site#78)
+
+api-v2 runs Strawberry with `auto_camel_case=False`, so the argument is spelled `search_hrc`
+verbatim in GraphQL documents — never camelCased. It is a standalone top-level argument, **not** a
+member of `filter_args` or `page_args`.
+
+Accepted by 21 operations: `get_SNPs_by_*`, `get_aggs_by_*`, `count_SNPs_by_*` and
+`download_SNPs_by_*` for each of `chromosome`, `RsID`, `RsIDs`, `IDs` and `gene_product`, plus
+`gene_info`. Rejected by the four `*_by_keyword` operations and by `annotations`.
+
+When true it adds the subset filter `Mapped_in_HRC == "Y"` and flips the coordinate basis to hg19:
+chromosome `start`/`end` match `pos_hg19`/`chr_hg19`, gene regions resolve to hg19, and VCF-id search
+matches `HRC_chr_pos_ref_alt`. RSID search continues to match `rs_dbSNP`. **The response shape does
+not change** — the flag only changes which documents match, so the hg19 columns must be selected
+explicitly from the "HG19 Info" tree category.
+
+In this codebase the flag lives on `QueryRequest.searchHRC` and is emitted from a single place,
+`buildArgs()` in `src/lib/queryBuilder.ts`, which the page, counts, stats and download builders all
+funnel through. It is omitted when false rather than sent as `search_hrc: false`.

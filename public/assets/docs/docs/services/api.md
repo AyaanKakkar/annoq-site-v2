@@ -3,17 +3,17 @@
 > This page documents how to query AnnoQ using the API
 
 <div class="docs-callout">
-  <a class="docs-callout-media" href="https://api-v2.annoq.org/docs" target="_blank" rel="noopener noreferrer"><img class="docs-callout-logo" src="/assets/images/swagger.svg" alt="Swagger" /></a>
+  <a class="docs-callout-media" href="https://api-v2.topmed.annoq.org/docs" target="_blank" rel="noopener noreferrer"><img class="docs-callout-logo" src="/assets/images/swagger.svg" alt="Swagger" /></a>
   <div class="docs-callout-body">
     <p class="docs-callout-title">AnnoQ REST API</p>
     <p class="docs-callout-text">Browse every end point, inspect the request and response schemas, and run live queries from the interactive Swagger documentation.</p>
-    <a class="docs-callout-action" href="https://api-v2.annoq.org/docs" target="_blank" rel="noopener noreferrer">Open the API documentation</a>
+    <a class="docs-callout-action" href="https://api-v2.topmed.annoq.org/docs" target="_blank" rel="noopener noreferrer">Open the API documentation</a>
   </div>
 </div>
 
-The AnnoQ API implementation and its associated Swagger documentation are available at [https://api-v2.annoq.org/docs](https://api-v2.annoq.org/docs).
+The AnnoQ API implementation and its associated Swagger documentation are available at [https://api-v2.topmed.annoq.org/docs](https://api-v2.topmed.annoq.org/docs).
 
-The API provides access to AnnoQ's rich annotations for Human SNPs from the [Haplotype Reference Consortium](https://www.sanger.ac.uk/collaboration/haplotype-reference-consortium/).  The end-points can be utilized independently or as part of large workflows to analyze and make coorelations on large data sets. A SNP (single nucleotide polymorphism) by definition is a genomic variant at a single base position in the DNA.  Each SNP in the system can be uniquely identified by the chromosome, its position, the reference nucleotide and the alternate nucleotide or its RSID (Reference SNP cluster ID).  Note, SNP's are not defined for all positions of the chromosome, but, a given chromosome and position, can have more than one SNP. Indels are not supported.
+The API provides access to AnnoQ's rich annotations for Human SNPs from release version [Freeze 8](https://legacy.bravo.sph.umich.edu/freeze8/hg38/) of [TopMed](https://topmed.nhlbi.nih.gov/), a program of the National Heart, Lung and Blood Institute (NHLBI), a part of the National Institutes of Health.  The end-points can be utilized independently or as part of large workflows to analyze and make coorelations on large data sets. A SNP (single nucleotide polymorphism) by definition is a genomic variant at a single base position in the DNA.  Each SNP in the system can be uniquely identified by the chromosome, its position, the reference nucleotide and the alternate nucleotide or its RSID (Reference SNP cluster ID).  Note, SNP's are not defined for all positions of the chromosome, but, a given chromosome and position, can have more than one SNP. Indels are not supported.
 
 
 The procedure for retrieving SNP's and associated attributes is as follows:
@@ -31,7 +31,7 @@ The list of SNP attributes, including the chromosome identifier, position, refer
 4. data_type - Type of data for the attribute 
 5. version - The version of the data for this attribute. 
 
-The list of attributes can be constructed by downloading the configuration from the [seaarch page](https://annoq.org/search). To download, select the attributes of interest and click on the export config button or  open the [detail page](https://annoq.org/detail), select the attributes of interest and click on the export config button. The contents of the downloaded file can be used for the <strong>fields</strong> parameter for the search and count end points.  Note, the maximum number of attributes that can be retrieved for a request is 20. Therefore, multiple configurations may be required, if more than 20 attributes have to be retrieved.
+The list of attributes can be constructed by downloading the configuration from the [search page](/search). To download, select the attributes of interest and click on the export config button or  open the [detail page](/detail), select the attributes of interest and click on the export config button. The contents of the downloaded file can be used for the <strong>fields</strong> parameter for the search and count end points.  Note, the maximum number of attributes that can be retrieved for a request is 20. Therefore, multiple configurations may be required, if more than 20 attributes have to be retrieved.
 
 
 ## SNP Search criteria
@@ -53,7 +53,18 @@ These end-points have been specifically designed for outputting large result set
 3.  End-point <strong>/count/snp/gene?</strong> Count of SNPs associated with gene product.
 
 
+## Restricting a search to the HRC subset
+
+Every SNP search, count and download end-point accepts an optional **`search_hrc`** parameter. With
+`?search_hrc=true` the results are restricted to variants mapped to the Haplotype Reference Consortium
+r1.1 panel (`Mapped_in_HRC=Y`), and the coordinate basis becomes **hg19**: chromosome start/end are
+matched against `pos_hg19`, gene regions resolve to hg19, and VCF-style ids are matched against
+`HRC_chr_pos_ref_alt`. RSID search is unaffected. The response shape does not change — to see the hg19
+values, request the `Mapped_in_HRC`, `HRC_chr_pos`, `HRC_chr_pos_ref_alt`, `chr_hg19`, `pos_hg19`,
+`ref_hg19` and `alt_hg19` attributes, which live under the **HG19 Info** category. The parameter is not
+accepted by the keyword end-points.
+
 ## Software packages for programmatic access
 The following software packages are built using the API.  These libraries can be included in workflows to retrieve information from AnnoQ.  
-1.  A [R package (AnnoQR)](https://github.com/USCbiostats/AnnoQR) with [tutorial](/docs/tutorials/r-package) can be used to access the API
-2.  A [python package (annoq-py)](https://github.com/USCbiostats/annoq-py) with [tutorial](/docs/tutorials/annoq-py) also has methods to access the API
+1.  A [R package (AnnoQR)](https://github.com/USCbiostats/AnnoQR/tree/annoq-site-78-add-hrc-mapping-info) with [tutorial](/docs/tutorials/r-package) can be used to access the API
+2.  A [python package (annoq-py)](https://github.com/USCbiostats/annoq-py/tree/annoq-site-78-add-hrc-mapping-info) with [tutorial](/docs/tutorials/annoq-py) also has methods to access the API

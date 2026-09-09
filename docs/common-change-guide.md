@@ -308,6 +308,8 @@ PANTHER term lookup data:
 src/data/panther_terms.json
 ```
 
+Generated upstream by **annoq-data-builder** (the Java module `add_panther_enhancer`, which writes it to its working/diagnostics dir) and copied in — **do not hand-edit it**. See annoq-proj `docs/pipeline.md` → "Generated artifacts".
+
 ## Change Filters
 
 Filter state:

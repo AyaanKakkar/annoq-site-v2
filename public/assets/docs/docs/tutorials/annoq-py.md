@@ -2,14 +2,14 @@
 
 A Python package for programmatically accessing SNP data from the AnnoQ API.
 
-[GitHub Repo](https://github.com/USCbiostats/annoq-py)
+[GitHub Repo](https://github.com/USCbiostats/annoq-py/tree/annoq-site-78-add-hrc-mapping-info)
 
 ## Installation
 
 Install directly from GitHub using pip:
 
 ```bash
-pip install git+https://github.com/USCbiostats/annoq-py.git
+pip install git+https://github.com/USCbiostats/annoq-py.git@annoq-site-78-add-hrc-mapping-info
 ```
 
 ## Requirements
@@ -29,7 +29,7 @@ snps = annoq.get_snps_by_chr(
     chromosome_identifier="1",
     start_position=1,
     end_position=100000,
-    fields=["chr", "pos", "ref", "alt", "rs_dbSNP151"]
+    fields=["chr", "pos", "ref", "alt", "rs_dbSNP"]
 )
 ```
 
@@ -84,7 +84,7 @@ snps = annoq.get_snps_by_chr(
     chromosome_identifier="1",
     start_position=1,
     end_position=100000,
-    fields=["chr", "pos", "ref", "alt", "rs_dbSNP151"]
+    fields=["chr", "pos", "ref", "alt", "rs_dbSNP"]
 )
 
 # Query the X chromosome from position 1,000 to 50,000 and get basic default fields
@@ -106,26 +106,26 @@ snps = annoq.get_snps_by_chr(
     chromosome_identifier="1",
     start_position=1,
     end_position=10000,
-    fields=["chr", "pos", "ref", "alt", "rs_dbSNP151"]
+    fields=["chr", "pos", "ref", "alt", "rs_dbSNP"]
 )
 ```
 
-**As a string config exported from [AnnoQ](https://annoq.org):**
+**As a string config exported from [AnnoQ](/):**
 
 ```python
 snps = annoq.get_snps_by_chr(
     chromosome_identifier="1",
     start_position=1,
     end_position=10000,
-    fields='{"_source":["chr", "pos", "ref", "alt", "rs_dbSNP151"]}'
+    fields='{"_source":["chr", "pos", "ref", "alt", "rs_dbSNP"]}'
 )
 ```
 
-**From a JSON config exported from [AnnoQ](https://annoq.org):**
+**From a JSON config exported from [AnnoQ](/):**
 
 ```python
 # Export the config file: config.txt from AnnoQ
-# {"_source":["chr", "pos", "ref", "alt", "rs_dbSNP151"]}
+# {"_source":["chr", "pos", "ref", "alt", "rs_dbSNP"]}
 
 snps = annoq.get_snps_by_chr(
     chromosome_identifier="1",
@@ -217,7 +217,7 @@ snps = annoq.get_snps_by_rsid_list(
 ```python
 snps = annoq.get_snps_by_rsid_list(
     rsid_list=["rs1219648", "rs2912774", "rs2981582"],
-    fields=["chr", "pos", "ref", "alt", "rs_dbSNP151"]
+    fields=["chr", "pos", "ref", "alt", "rs_dbSNP"]
 )
 ```
 
@@ -261,7 +261,7 @@ snps = annoq.get_snps_by_gene_product(gene="ENSG00000012048")
 ```python
 snps = annoq.get_snps_by_gene_product(
     gene="TP53",
-    fields=["chr", "pos", "ref", "alt", "rs_dbSNP151"],
+    fields=["chr", "pos", "ref", "alt", "rs_dbSNP"],
     filter_fields=["ANNOVAR_ucsc_Transcript_ID"]
 )
 ```
@@ -369,7 +369,7 @@ snps = annoq.get_snps_by_chr(
     start_position=1,
     end_position=1000000,
     filter_fields=["VEP_ensembl_Gene_ID"],
-    fields=["chr", "pos", "ref", "alt", "rs_dbSNP151", "VEP_ensembl_Gene_ID"]
+    fields=["chr", "pos", "ref", "alt", "rs_dbSNP", "VEP_ensembl_Gene_ID"]
 )
 ```
 
@@ -416,7 +416,7 @@ for gene in genes:
     
     all_gene_snps[gene] = annoq.get_snps_by_gene_product(
         gene=gene,
-        fields=["chr", "pos", "ref", "alt", "rs_dbSNP151"],
+        fields=["chr", "pos", "ref", "alt", "rs_dbSNP"],
         fetch_all=True
     )
 ```
@@ -435,7 +435,7 @@ print(f"{count} out of {len(rsids)} RSIDs found")
 # Retrieve all matching SNPs
 snps = annoq.get_snps_by_rsid_list(
     rsid_list=rsids,
-    fields=["chr", "pos", "ref", "alt", "rs_dbSNP151"],
+    fields=["chr", "pos", "ref", "alt", "rs_dbSNP"],
     fetch_all=True
 )
 ```
@@ -500,9 +500,37 @@ except requests.exceptions.HTTPError as e:
 
 ---
 
+## Restricting a search to the HRC subset
+
+`get_snps_by_chr`, `get_snps_by_rsid_list`, `get_snps_by_gene_product` and the three
+`count_snps_by_*` functions accept an optional `search_hrc` argument. When `True`, results are
+restricted to variants mapped to the Haplotype Reference Consortium r1.1 panel
+(`Mapped_in_HRC=Y`), and the coordinate basis becomes **hg19**: `start_position`/`end_position` are
+matched against `pos_hg19`, and gene regions resolve to hg19.
+
+```python
+snps = annoq.get_snps_by_chr(
+    chromosome_identifier="18",
+    start_position=10000,
+    end_position=20000,
+    search_hrc=True,
+    fields=["chr", "pos", "Mapped_in_HRC", "chr_hg19", "pos_hg19"]
+)
+```
+
+The response shape is unchanged, so request the hg19 columns explicitly to see them:
+`Mapped_in_HRC`, `HRC_chr_pos`, `HRC_chr_pos_ref_alt`, `chr_hg19`, `pos_hg19`, `ref_hg19`,
+`alt_hg19`. They live under the **HG19 Info** category in the annotation tree.
+
+`get_snp_attributes()` does not accept it, and neither do the SNPWay workflow functions — those
+call the SNPWay service rather than the AnnoQ API. HRC support in SNPWay is tracked separately.
+
+The base URL can be pointed at another api-v2 instance with the `ANNOQ_BASE_URL` environment
+variable.
+
 ## Contributing
 
-Contributions are welcome! If you encounter any issues or have suggestions for improvements, please open an issue or submit a pull request on the [GitHub repository](https://github.com/USCbiostats/annoq-py).
+Contributions are welcome! If you encounter any issues or have suggestions for improvements, please open an issue or submit a pull request on the [GitHub repository](https://github.com/USCbiostats/annoq-py/tree/annoq-site-78-add-hrc-mapping-info).
 
 ## License
 
@@ -510,4 +538,4 @@ This package is licensed under the MIT License.
 
 ## Support
 
-For questions or issues related to AnnoQ itself, please visit the site [AnnoQ](https://annoq.org)
+For questions or issues related to AnnoQ itself, please visit the site [AnnoQ](/)

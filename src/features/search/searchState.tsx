@@ -6,6 +6,7 @@ export type SearchState = {
   mode: QueryMode;
   values: QueryFormValues;
   filters: string[];
+  searchHRC: boolean;
   submitted?: QueryRequest;
   requestId: number;
   page: number;
@@ -23,6 +24,7 @@ type Action =
   | { type: 'setMode'; mode: QueryMode }
   | { type: 'setValues'; values: Partial<QueryFormValues> }
   | { type: 'setFilters'; filters: string[] }
+  | { type: 'setSearchHRC'; searchHRC: boolean }
   | { type: 'submit'; request: QueryRequest }
   | { type: 'setPage'; page: number }
   | { type: 'pageSuccess'; requestId: number; result: ResultPage }
@@ -49,6 +51,7 @@ export const initialSearchState: SearchState = {
   mode: 'chromosome',
   values: initialValues,
   filters: [],
+  searchHRC: false,
   requestId: 0,
   page: 1,
   loading: false,
@@ -67,12 +70,15 @@ function reducer(state: SearchState, action: Action): SearchState {
       return { ...state, values: { ...state.values, ...action.values } };
     case 'setFilters':
       return { ...state, filters: action.filters };
+    case 'setSearchHRC':
+      return { ...state, searchHRC: action.searchHRC };
     case 'submit':
       return {
         ...state,
         submitted: action.request,
         requestId: state.requestId + 1,
         filters: action.request.filters,
+        searchHRC: action.request.searchHRC,
         page: 1,
         result: undefined,
         selectedRow: undefined,

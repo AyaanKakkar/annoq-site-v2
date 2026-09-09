@@ -74,8 +74,8 @@ To change the dataset used by the site, modify the `./src/lib/environment.ts` fi
 
 ```typescript
 export const environment = {
-  dataset: 'annoq-annotations-v5',
-  annotationApiV2: 'https://api-v2.annoq.org',
+  dataset: 'annoq-annotations-tm-20260828',
+  annotationApiV2: 'https://api-v2-dev.topmed.annoq.org',
   // other environment variables...
 };
 ```
@@ -84,8 +84,12 @@ Each value also falls back to an environment variable, so you can point a single
 API without editing the file:
 
 ```bash
-VITE_ANNOQ_API_V2=https://api-v2.topmed.annoq.org npm run dev
+VITE_ANNOQ_API_V2=https://api-v2.annoq.org npm run dev
 ```
+
+This branch defaults to the **dev** TOPMed api-v2 because it is the only instance carrying the
+`search_hrc` argument behind the "Search HRC data" option. Flip the default to
+`https://api-v2.topmed.annoq.org` at TOPMed cutover.
 
 ### Regenerating the GraphQL types
 
@@ -102,7 +106,7 @@ The generator reads its target from the same `environment.annotationApiV2` value
 regenerate against the old API. The environment variable works here too:
 
 ```bash
-VITE_ANNOQ_API_V2=https://api-v2.topmed.annoq.org npm run graphql_codegen
+VITE_ANNOQ_API_V2=https://api-v2.annoq.org npm run graphql_codegen
 ```
 
 The API must be reachable when this runs; the command fails rather than falling back to a cached

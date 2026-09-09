@@ -43,7 +43,7 @@ TanStack Table and TanStack Virtual are installed but the current results table 
 By default the app talks to:
 
 ```text
-https://api-v2.annoq.org
+https://api-v2-dev.topmed.annoq.org
 ```
 
 Backend endpoints used by this app:

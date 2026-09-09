@@ -5,8 +5,10 @@ import {
   Alert,
   Box,
   Button,
+  Checkbox,
   Divider,
   FormControl,
+  FormControlLabel,
   IconButton,
   InputLabel,
   MenuItem,
@@ -41,6 +43,7 @@ export function QueryDrawer({
   const annotationSelection = useAnnotationSelection();
   const [mode, setMode] = useState(state.mode);
   const [values, setValues] = useState(state.values);
+  const [searchHRC, setSearchHRC] = useState(state.searchHRC);
   const [activeAnnotation, setActiveAnnotation] = useState<Annotation | undefined>();
   const [configError, setConfigError] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
@@ -49,6 +52,11 @@ export function QueryDrawer({
   const changeMode = useCallback((nextMode: QueryMode) => {
     setMode(nextMode);
     dispatch({ type: 'setMode', mode: nextMode });
+  }, [dispatch]);
+
+  const changeSearchHRC = useCallback((next: boolean) => {
+    setSearchHRC(next);
+    dispatch({ type: 'setSearchHRC', searchHRC: next });
   }, [dispatch]);
 
   const updateValues = useCallback((nextValues: Partial<typeof values>) => {
@@ -95,7 +103,7 @@ export function QueryDrawer({
     // No empty-selection guard: chr and pos are always selected (issue #4), so
     // a search can never be sent with no fields. "Clear Selection" leaves those
     // two and returns a plain list of variant positions.
-    submitSearch(mode, values, annotationSelection.selected, [], dispatch);
+    submitSearch(mode, values, annotationSelection.selected, [], searchHRC, dispatch);
     onSubmitted();
   }
 
@@ -133,13 +141,33 @@ export function QueryDrawer({
         </FormControl>
       </Stack>
 
+      {mode !== 'keyword' && (
+        <Box className="query-hrc-row">
+          <FormControlLabel
+            control={
+              <Checkbox
+                size="small"
+                checked={searchHRC}
+                onChange={(event) => changeSearchHRC(event.target.checked)}
+              />
+            }
+            label="Search HRC data"
+          />
+          {searchHRC && (
+            <Typography variant="caption" className="query-hrc-hint">
+              Searching HRC r1.1 mapping — coordinates are hg19 (GRCh37).
+            </Typography>
+          )}
+        </Box>
+      )}
+
       <Stack spacing={1.5} className="query-form-section">
         {mode === 'chromosome' && (
           <>
             <TextField size="small" label="Chromosome" value={values.chrom} onChange={(e) => updateValues({ chrom: e.target.value })} />
             <Stack direction="row" spacing={1}>
-              <TextField size="small" label="Start" value={values.start} onChange={(e) => updateValues({ start: e.target.value })} />
-              <TextField size="small" label="End" value={values.end} onChange={(e) => updateValues({ end: e.target.value })} />
+              <TextField size="small" label={searchHRC ? 'Start (hg19)' : 'Start'} value={values.start} onChange={(e) => updateValues({ start: e.target.value })} />
+              <TextField size="small" label={searchHRC ? 'End (hg19)' : 'End'} value={values.end} onChange={(e) => updateValues({ end: e.target.value })} />
             </Stack>
           </>
         )}

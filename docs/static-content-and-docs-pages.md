@@ -132,7 +132,7 @@ figure layout.
 
 `/docs/services` and `/docs/services/api` open with a `.docs-callout` block
 (raw HTML in the markdown, styles in `src/styles.css`) carrying the Swagger
-logo and a button-styled link to `https://api-v2.annoq.org/docs`. Hardcoded,
+logo and a button-styled link to `https://api-v2.topmed.annoq.org/docs`. Hardcoded,
 not derived from `API_BASE`: these files are static assets served outside the
 app's config. Issue #19.
 

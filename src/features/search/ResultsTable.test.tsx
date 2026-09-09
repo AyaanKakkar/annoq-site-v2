@@ -21,6 +21,7 @@ vi.mock('../annotations/useAnnotations', () => ({
 const request: QueryRequest = {
   mode: 'chromosome',
   values: initialSearchState.values,
+  searchHRC: false,
   fields: ['chr', 'pos'],
   filters: []
 };

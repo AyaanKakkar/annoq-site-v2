@@ -79,13 +79,15 @@ export function buildRequest(
   mode: QueryMode,
   values: QueryRequest['values'],
   selectedAnnotations: string[],
-  filters: string[] = []
+  filters: string[] = [],
+  searchHRC = false
 ): QueryRequest {
   return {
     mode,
     values,
     fields: unique(selectedAnnotations),
-    filters
+    filters,
+    searchHRC
   };
 }
 
@@ -116,8 +118,12 @@ export function buildCountsQuery(request: QueryRequest, store: AnnotationStore):
   }`;
 }
 
-export function buildGeneInfoQuery(gene: string): string {
-  return `query AnnoQGeneInfo { geneInfo: ${GENE_INFO}(gene: ${gqlString(gene)}) { contig end start gene_id } }`;
+export function buildGeneInfoQuery(gene: string, searchHRC = false): string {
+  // In HRC mode api-v2 resolves the gene's region in hg19, so the flag has to
+  // reach this lookup too -- otherwise the region handed to the SNP query is
+  // hg38 while the SNP query matches against pos_hg19.
+  const hrc = searchHRC ? ', search_hrc: true' : '';
+  return `query AnnoQGeneInfo { geneInfo: ${GENE_INFO}(gene: ${gqlString(gene)}${hrc}) { contig end start gene_id } }`;
 }
 
 export function buildStatsQuery(request: QueryRequest, field: string, page: ResultPage, store: AnnotationStore): string {
@@ -195,21 +201,27 @@ export function normalizeStatsResponse(
 }
 
 function buildArgs(request: QueryRequest): Record<string, unknown> {
+  // Spread into every non-keyword mode: api-v2 rejects `search_hrc` on the
+  // *_by_keyword operations. Omitted when false rather than sent as `false`
+  // because api-v2 already defaults to off, so omitting leaves a default
+  // search's query string byte-identical to before the flag existed.
+  const hrc = request.searchHRC && request.mode !== 'keyword' ? { search_hrc: true } : {};
   switch (request.mode) {
     case 'chromosome':
       return {
         chr: request.values.chrom.trim().toLowerCase(),
         start: Number.parseInt(request.values.start, 10),
-        end: Number.parseInt(request.values.end, 10)
+        end: Number.parseInt(request.values.end, 10),
+        ...hrc
       };
     case 'geneProduct':
-      return { gene: request.values.geneProduct.trim() };
+      return { gene: request.values.geneProduct.trim(), ...hrc };
     case 'rsID':
-      return { rsID: request.values.rsID.trim() };
+      return { rsID: request.values.rsID.trim(), ...hrc };
     case 'rsIDList':
-      return { rsIDs: parseRsidList(request.values.rsIDList) };
+      return { rsIDs: parseRsidList(request.values.rsIDList), ...hrc };
     case 'vcf':
-      return { ids: parseVcfIds(request.values.vcf) };
+      return { ids: parseVcfIds(request.values.vcf), ...hrc };
     case 'keyword':
       return { keyword: request.values.keyword.trim() };
   }

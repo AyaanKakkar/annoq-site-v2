@@ -100,7 +100,7 @@ describe('QueryDrawer analytics', () => {
 describe('QueryDrawer genome build', () => {
   it('states the genome build the dataset is based on', () => {
     renderDrawer();
-    expect(screen.getByText('AnnoQ is based on GRCh37/hg19')).toBeInTheDocument();
+    expect(screen.getByText('AnnoQ is based on GRCh38/hg38')).toBeInTheDocument();
   });
 });
 
@@ -120,5 +120,35 @@ describe('QueryDrawer header', () => {
     expect(
       screen.queryByText(/Variants Annotation Query Provided by IMAGE Project/)
     ).not.toBeInTheDocument();
+  });
+});
+
+// annoq-site#78. The checkbox is a cross-mode modifier, so it sits under the
+// Query Type row rather than inside any one mode's fields -- except keyword,
+// which api-v2 rejects the argument on.
+describe('QueryDrawer HRC option', () => {
+  it('offers the HRC subset checkbox, unchecked by default', () => {
+    renderDrawer();
+    const checkbox = screen.getByRole('checkbox', { name: 'Search HRC data' });
+    expect(checkbox).not.toBeChecked();
+  });
+
+  it('hides the hg19 hint until the box is checked', () => {
+    renderDrawer();
+    expect(screen.queryByText(/coordinates are hg19/)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Search HRC data' }));
+    expect(screen.getByText(/coordinates are hg19/)).toBeInTheDocument();
+  });
+
+  // In HRC mode api-v2 matches start/end against pos_hg19, so collecting them
+  // under an unqualified label would be asking for the wrong coordinate space.
+  it('relabels the chromosome position inputs as hg19 when checked', () => {
+    renderDrawer();
+    expect(screen.getByLabelText('Start')).toBeInTheDocument();
+    expect(screen.getByLabelText('End')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Search HRC data' }));
+    expect(screen.getByLabelText('Start (hg19)')).toBeInTheDocument();
+    expect(screen.getByLabelText('End (hg19)')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Start')).not.toBeInTheDocument();
   });
 });

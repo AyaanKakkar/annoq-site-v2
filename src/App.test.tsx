@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 import App from './App';
@@ -27,5 +27,15 @@ describe('app shell viewport lock', () => {
     const { container } = renderAt('/about');
     expect(container.querySelector('.app-shell')).toBeInTheDocument();
     expect(container.querySelector('.app-shell--locked')).not.toBeInTheDocument();
+  });
+});
+
+// annoq-site#78: the site serves the TOPMed beta during the cutover and says
+// so in the toolbar, matching the banner annoq-site carries.
+describe('TopMed beta label', () => {
+  it('links the beta label to the version page', () => {
+    renderAt('/');
+    const label = screen.getByRole('link', { name: 'TopMed Beta Release' });
+    expect(label).toHaveAttribute('href', '/version');
   });
 });

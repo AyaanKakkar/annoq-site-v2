@@ -43,6 +43,16 @@ export function buildAnnotationTree(annotations: Annotation[]): AnnotationNode[]
   return roots;
 }
 
+/**
+ * Depth-first pre-order walk of the tree. The Angular site derived its /version
+ * table from the flattened tree (MatTreeFlattener over the same parent_id nesting),
+ * so anything that wants that ordering has to walk the tree rather than the flat
+ * annotation list, which arrives from the API in a different order.
+ */
+export function flattenAnnotationTree(nodes: AnnotationNode[]): AnnotationNode[] {
+  return nodes.flatMap((node) => [node, ...flattenAnnotationTree(node.children)]);
+}
+
 export function collectDescendantNames(node: AnnotationNode): string[] {
   return [node.name, ...node.children.flatMap(collectDescendantNames)];
 }

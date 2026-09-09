@@ -60,6 +60,16 @@ export type QueryRequest = {
   values: QueryFormValues;
   fields: string[];
   filters: string[];
+  /**
+   * api-v2's `search_hrc` (annoq-site#78): restrict results to the HRC r1.1
+   * mapped subset, which also flips the coordinate basis to hg19.
+   *
+   * Held here beside `filters`, not in `values`, because it is a cross-mode
+   * query modifier. `values` is the per-mode input -- only one mode's values are
+   * ever rendered or read -- whereas this applies to every mode except keyword,
+   * which api-v2 rejects it on.
+   */
+  searchHRC: boolean;
 };
 
 /**

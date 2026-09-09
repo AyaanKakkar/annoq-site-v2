@@ -280,3 +280,18 @@ rendered, whether or not the limit is hit; its tooltip links to `API_DOCS_URL`
 
 The explanation hangs off that icon rather than off the Download button because
 MUI disabled buttons swallow the pointer events a tooltip listens for.
+
+### Search HRC data
+
+A checkbox under the Query Type row, hidden in keyword mode (api-v2 rejects the argument there).
+When ticked, the query is restricted to the HRC r1.1 mapped subset and the chromosome Start/End
+inputs are relabelled "(hg19)", because api-v2 matches them against `pos_hg19` in that mode. The
+genome-build caption still reads GRCh38/hg38: the dataset is TOPMed Freeze 8, and HRC r1.1 is a
+mapping of it rather than a different build.
+
+The flag is held on `SearchState`/`QueryRequest` as `searchHRC`, beside `filters` rather than inside
+`values` — it is a cross-mode modifier, whereas `values` holds the per-mode inputs.
+
+The HRC and hg19 columns (`Mapped_in_HRC`, `HRC_chr_pos`, `HRC_chr_pos_ref_alt`, `chr_hg19`,
+`pos_hg19`, `ref_hg19`, `alt_hg19`) are ordinary tree leaves under "HG19 Info" — users tick them
+like any other column. Nothing is auto-added to the selection.

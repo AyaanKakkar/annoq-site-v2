@@ -37,11 +37,15 @@ export const GENES_DISPLAYED_SIZE = environment.genesDisplayedSize;
 export const UCSC_URL = environment.ucscUrl;
 
 /**
- * v1 issue #88. Hardcoded, as v1 was: v1 only ever served HRC.
+ * v1 issue #88. Hardcoded, as v1 was.
  *
- * Known limitation, accepted deliberately — this is wrong when v2 is pointed
- * at the TOPMed stack (VITE_ANNOQ_API_V2=https://api-v2.topmed.annoq.org),
- * which is GRCh38/hg38. Isolated here so retargeting is a one-line change.
- * See docs/superpowers/specs/2026-09-01-annoq-site-parity-design.md.
+ * This branch serves TOPMed (Freeze 8), which is GRCh38/hg38 -- so the value is
+ * now correct for TOPMed and wrong for HRC, the inverse of what it was before
+ * the issue #78 port. The "Search HRC data" option does not change it: the HRC
+ * r1.1 panel is a *mapping* of these variants, and the drawer says so with its
+ * own hg19 hint rather than by rewriting this label.
+ *
+ * Isolated here so retargeting stays a one-line change.
+ * See docs/superpowers/specs/2026-09-08-issue-78-hrc-mapping-port-design.md.
  */
-export const GENOME_BUILD = 'GRCh37/hg19';
+export const GENOME_BUILD = 'GRCh38/hg38';

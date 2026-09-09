@@ -45,7 +45,7 @@ vi.mock('../../lib/formatters', async (importOriginal) => {
 
 const columns = annotations.slice(1).map((annotation) => annotation.name);
 const cellValue = Array.from({ length: ITEMS_PER_CELL }, (_, i) => `GO:${String(i).padStart(7, '0')}`).join(';');
-const request: QueryRequest = { mode: 'chromosome', values: initialSearchState.values, fields: columns, filters: [] };
+const request: QueryRequest = { mode: 'chromosome', values: initialSearchState.values, fields: columns, filters: [], searchHRC: false };
 const result: ResultPage = {
   request,
   page: 1,

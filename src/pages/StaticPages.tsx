@@ -2,7 +2,9 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { Box, Button, Container, Grid, Link, Paper, Stack, Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import { browserVersions, releases } from '../data/staticContent';
+import { API_DOCS_URL } from '../lib/config';
 import { useAnnotations } from '../features/annotations/useAnnotations';
+import { flattenAnnotationTree } from '../lib/annotations';
 
 export function HomePage() {
   return (
@@ -34,14 +36,19 @@ export function HomePage() {
         <Grid container spacing={2}>
           <Grid size={{ xs: 12, md: 6 }}>
             <Paper className="stat-card">
-              <Typography variant="h4">~39 million</Typography>
+              <Typography variant="h4">&gt; 700 million</Typography>
               <Typography variant="caption" className="stat-hint">Currently only human variants are supported</Typography>
-              <Typography>pre-annotated variants from the <Link href="http://www.haplotype-reference-consortium.org" target="_blank">Haplotype Reference Consortium (HRC)</Link></Typography>
+              <Typography>
+                pre-annotated variants from the{' '}
+                <Link href="https://topmed.nhlbi.nih.gov/" target="_blank">Trans-Omics for Precision Medicine (TOPMed)</Link>
+                {' '}data{' '}
+                <Link href="https://legacy.bravo.sph.umich.edu/freeze8/hg38/" target="_blank">Freeze 8</Link>
+              </Typography>
             </Paper>
           </Grid>
           <Grid size={{ xs: 12, md: 6 }}>
             <Paper className="stat-card">
-              <Typography variant="h4">600+</Typography>
+              <Typography variant="h4">800+</Typography>
               <Typography>Supported Annotation Types <Link component={RouterLink} to="/detail">More Details</Link></Typography>
             </Paper>
           </Grid>
@@ -49,11 +56,13 @@ export function HomePage() {
       </Container>
       <Box className="band">
         <Container>
-          <Typography variant="h4" gutterBottom>AnnoQ now supports TOPMed</Typography>
+          <Typography variant="h4" gutterBottom>AnnoQ now serves TOPMed</Typography>
           <Typography>
             AnnoQ version 2.0-beta.1 provides over 700 million pre-annotated variants from the Trans-Omics for Precision Medicine
             program with sequence features by Whole Genome Sequence Annotator and functions from PANTHER, Gene Ontology,
-            Reactome and PEREGRINE. The beta release can be accessed <Link href="https://topmed.annoq.org/" target="_blank">here</Link>.
+            Reactome and PEREGRINE. Variants mapped to the Haplotype Reference Consortium r1.1 panel are still available: tick{' '}
+            <strong>Search HRC data</strong> on the <Link component={RouterLink} to="/search">search page</Link> to restrict a
+            query to that subset, which is reported in hg19 coordinates.
           </Typography>
         </Container>
       </Box>
@@ -104,21 +113,21 @@ export function HomePage() {
           <Grid container spacing={2} sx={{ mt: 1 }}>
             <Feature
               icon={<img src="/assets/images/swagger.svg" alt="Swagger" />}
-              iconHref="https://api-v2.annoq.org/docs"
+              iconHref={API_DOCS_URL}
               title="API Data Access"
               text="Retrieve annotation data via command line scripts."
               to="/docs/services"
             />
             <Feature
               icon={<img src="/assets/images/python.svg" alt="Python" />}
-              iconHref="https://github.com/USCbiostats/annoq-py"
+              iconHref="https://github.com/USCbiostats/annoq-py/tree/annoq-site-78-add-hrc-mapping-info"
               title="Python library"
               text="Retrieve annotations using a Python library."
               to="/docs/tutorials/annoq-py"
             />
             <Feature
               icon={<img src="/assets/images/r-package.svg" alt="R" />}
-              iconHref="https://github.com/USCbiostats/AnnoQR"
+              iconHref="https://github.com/USCbiostats/AnnoQR/tree/annoq-site-78-add-hrc-mapping-info"
               title="R Package"
               text="Getting annotation data via R programming language."
               to="/docs/tutorials/r-package"
@@ -143,9 +152,9 @@ export function HomePage() {
         <Container>
           <Typography variant="h5" align="center" gutterBottom>We recommend the services of our trusted resources</Typography>
           <Typography component="p" sx={{ mb: 2 }}>
-            We could not do it without our partners and collaborators. The variants data set was from the Haplotype Reference Consortium (HRC),
-            and was pre-annotated with sequence features by WGSA and functions by PANTHER and Gene Ontology. We are very grateful for the
-            reliable data and tools they provide. Last, this work is not possible without the support from the members at the{' '}
+            We could not do it without our partners and collaborators. The variants data set was from the Trans-Omics for
+            Precision Medicine (TOPMed) program, and was pre-annotated with sequence features by WGSA and functions by PANTHER
+            and Gene Ontology. We are very grateful for the reliable data and tools they provide. Last, this work is not possible without the support from the members at the{' '}
             <Link href="https://p01.uscbiostatistics.org/" target="_blank">USC IMAGE Project</Link>. Funding of this project is provided by NIH.
           </Typography>
           <Grid container spacing={2} sx={{ alignItems: 'center', justifyContent: 'center' }}>
@@ -153,6 +162,7 @@ export function HomePage() {
             <Logo href="https://sites.google.com/site/jpopgen/wgsa" label="WGSA" />
             <Logo href="http://pantherdb.org/" src="/assets/images/logos/panther-logo-mono.png" label="PANTHER" />
             <Logo href="http://geneontology.org/" src="/assets/images/logos/go-logo-mono.png" label="GO" />
+            <Logo href="https://topmed.nhlbi.nih.gov/" label="TOPMed" />
             <Logo href="http://www.haplotype-reference-consortium.org" label="HRC" />
           </Grid>
         </Container>
@@ -224,16 +234,21 @@ function Logo({ href, src, label }: { href: string; src?: string; label: string 
 export function AboutPage() {
   return <SimplePage title="About AnnoQ">
     <Typography>
-      The Annotation Query (AnnoQ) is an integrated functional annotation platform for large-scale genetic variant annotation.
-      The backend of the system is a large collection of pre-annotated variants from the Haplotype Reference Consortium (HRC)
-      (~39 million) with sequence features (by WGSA) and functions (PANTHER, Gene Ontology and Reactome). Currently only human
-      variants are supported. The data is built in an Elasticsearch framework and an API was built to allow users to quickly
-      access the annotation data in three ways:
+      The Annotation Query (AnnoQ) system is an integrated functional annotation platform for large-scale genetic variant
+      annotation. The system is a large collection of over 700 million pre-annotated variants from the{' '}
+      <Link href="https://legacy.bravo.sph.umich.edu/freeze8/hg38/" target="_blank">Trans-Omics for Precision Medicine (TOPMed) data Freeze 8</Link>{' '}
+      with sequence features by <Link href="https://sites.google.com/site/jpopgen/wgsa" target="_blank">WGSA</Link>, functions by{' '}
+      <Link href="https://pantherdb.org" target="_blank">PANTHER</Link>,{' '}
+      <Link href="https://geneontology.org/" target="_blank">Gene Ontology</Link>,{' '}
+      <Link href="https://reactome.org/" target="_blank">Reactome</Link>, and gene enhancers from{' '}
+      <Link href="https://www.peregrineproj.org/" target="_blank">PEREGRINE</Link>. Currently only human variants are supported.
+      Variants mapped to the Haplotype Reference Consortium r1.1 panel can be queried as a subset from the search page. The data
+      can be accessed in one of the following ways:
     </Typography>
     <ol>
-      <li><Link href="https://annoq.org">Interactive web interface</Link>.</li>
-      <li><Link href="https://api-v2.annoq.org/docs">API</Link> data access using command line scripts.</li>
-      <li>Software libraries <Link href="https://github.com/USCbiostats/AnnoQR">AnnoQR</Link> in R and <Link href="https://github.com/USCbiostats/annoq-py">annoq-py</Link> in Python.</li>
+      <li><Link component={RouterLink} to="/search">Browser</Link>.</li>
+      <li><Link href={API_DOCS_URL} target="_blank">Swagger API</Link> data access using command line scripts.</li>
+      <li>Software libraries <Link href="https://github.com/USCbiostats/AnnoQR/tree/annoq-site-78-add-hrc-mapping-info" target="_blank">AnnoQR</Link> in R and <Link href="https://github.com/USCbiostats/annoq-py/tree/annoq-site-78-add-hrc-mapping-info" target="_blank">annoq-py</Link> in Python.</li>
     </ol>
     <img src="/assets/images/annoq_workflow.png" className="wide-workflow" alt="AnnoQ workflow" />
     <Typography variant="h4">Current members</Typography>
@@ -396,7 +411,10 @@ function DataTable({ columns, rows }: { columns: string[]; rows: string[][] }) {
 
 function VersionContent() {
   const annotations = useAnnotations();
-  const rows = (annotations.data?.annotations ?? [])
+  // Tree order, not response order: the Angular site listed these in the order the
+  // annotation tree nests them, and the flat list from /annotations is ordered
+  // differently, which silently reshuffled this table during the port.
+  const rows = flattenAnnotationTree(annotations.data?.tree ?? [])
     .filter((annotation) => annotation.version && annotation.name)
     .map((annotation) => [annotation.label || annotation.name, annotation.version || '']);
   return <SimplePage title="Data Source and Annotation Tool Version Summary">

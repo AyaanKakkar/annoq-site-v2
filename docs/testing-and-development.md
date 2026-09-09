@@ -104,7 +104,7 @@ src/lib/environment.ts
 Common local override example:
 
 ```bash
-VITE_ANNOQ_API_V2=https://api-v2.annoq.org npm run dev
+VITE_ANNOQ_API_V2=https://api-v2.annoq.org npm run dev   # point back at the HRC stack
 ```
 
 ## Pre-Commit Sanity Check

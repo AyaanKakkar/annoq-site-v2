@@ -62,6 +62,7 @@ export default function App() {
               <Button component={RouterLink} to="/search" variant="outlined">Launch Query UI</Button>
               <Button component={RouterLink} to="/docs/tutorials/ui-query" variant="outlined">UI Tutorial</Button>
             </Stack>
+            <Button component={RouterLink} to="/version" className="beta-label">TopMed Beta Release</Button>
             <Box sx={{ flex: 1 }} />
             {!isMobile && <Stack direction="row">{navLinks}</Stack>}
           </Toolbar>
