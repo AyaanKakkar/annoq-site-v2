@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { buildAnnotationStore } from '../../lib/annotations';
 import type { Annotation } from '../../types';
@@ -133,11 +133,11 @@ describe('QueryDrawer HRC option', () => {
     expect(checkbox).not.toBeChecked();
   });
 
-  it('hides the hg19 hint until the box is checked', () => {
+  it('hides the HRC hint until the box is checked', () => {
     renderDrawer();
-    expect(screen.queryByText(/coordinates are hg19/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/mapped in HRC r1\.1/)).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('checkbox', { name: 'Search HRC data' }));
-    expect(screen.getByText(/coordinates are hg19/)).toBeInTheDocument();
+    expect(screen.getByText(/mapped in HRC r1\.1/)).toBeInTheDocument();
   });
 
   // In HRC mode api-v2 matches start/end against pos_hg19, so collecting them
@@ -150,5 +150,57 @@ describe('QueryDrawer HRC option', () => {
     expect(screen.getByLabelText('Start (hg19)')).toBeInTheDocument();
     expect(screen.getByLabelText('End (hg19)')).toBeInTheDocument();
     expect(screen.queryByLabelText('Start')).not.toBeInTheDocument();
+  });
+});
+
+// api-v2 does not reinterpret coordinates for every mode. Per the site -> API
+// mapping, chromosome / VCF / gene-product searches move to the hg19 fields
+// (chr_hg19, pos_hg19, ...), whereas rsID and rsID-list searches keep matching
+// rs_dbSNP.keyword and only gain the Mapped_in_HRC=Y filter. A single blanket
+// "coordinates are hg19" line was wrong for two of the five modes.
+describe('QueryDrawer HRC hint copy per query mode', () => {
+  function chooseMode(label: string) {
+    fireEvent.mouseDown(screen.getByRole('combobox'));
+    fireEvent.click(screen.getByRole('option', { name: label }));
+  }
+
+  function hintAfterEnablingHRC(modeLabel?: string) {
+    renderDrawer();
+    if (modeLabel) chooseMode(modeLabel);
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Search HRC data' }));
+    return document.querySelector('.query-hrc-hint')!.textContent ?? '';
+  }
+
+  it('always says results are restricted to the HRC r1.1 subset', () => {
+    for (const label of [undefined, 'VCF File', 'Gene Product', 'rsID', 'rsID List']) {
+      expect(hintAfterEnablingHRC(label), `mode ${label ?? 'Chromosome'}`).toMatch(/mapped in HRC r1\.1/);
+      cleanup();
+    }
+  });
+
+  it('tells chromosome searches to enter positions as hg19', () => {
+    const hint = hintAfterEnablingHRC();
+    expect(hint).toMatch(/Start and End/);
+    expect(hint).toMatch(/hg19 \(GRCh37\)/);
+  });
+
+  it('tells VCF searches their rows are matched on hg19 fields', () => {
+    const hint = hintAfterEnablingHRC('VCF File');
+    expect(hint).toMatch(/hg19 \(GRCh37\)/);
+    expect(hint).toMatch(/ref and alt/);
+  });
+
+  it('tells gene-product searches the region resolves in hg19', () => {
+    const hint = hintAfterEnablingHRC('Gene Product');
+    expect(hint).toMatch(/gene region/);
+    expect(hint).toMatch(/hg19 \(GRCh37\)/);
+  });
+
+  // rsID searches match rs_dbSNP.keyword in both modes, so claiming the
+  // coordinate basis changed would be plainly false.
+  it.each(['rsID', 'rsID List'])('does not claim hg19 coordinates for %s searches', (label) => {
+    const hint = hintAfterEnablingHRC(label);
+    expect(hint).not.toMatch(/hg19/);
+    expect(hint).toMatch(/rsIDs are matched as usual/);
   });
 });

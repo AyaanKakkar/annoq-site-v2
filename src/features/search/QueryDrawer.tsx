@@ -30,6 +30,31 @@ import { ENABLE_KEYWORD_SEARCH, GENOME_BUILD } from '../../lib/config';
 import { QUERY_MODES, queryModeLabel } from '../../lib/queryModes';
 import { submitSearch } from './SearchWorkspace';
 
+/**
+ * api-v2 adds the `Mapped_in_HRC=Y` filter in every mode, but only the
+ * coordinate-based modes are reinterpreted. Per the site -> API mapping,
+ * chromosome, VCF and gene-product searches move onto the hg19 fields
+ * (`chr_hg19`, `pos_hg19`, `ref_hg19`, `alt_hg19`), whereas rsID and rsID-list
+ * searches keep matching `rs_dbSNP.keyword` exactly as they do outside HRC mode.
+ *
+ * A single blanket "coordinates are hg19" line was therefore wrong for two of
+ * the five modes -- it told users their rsIDs had changed meaning when nothing
+ * about that lookup changes. Keyword mode has no entry: api-v2 rejects
+ * `search_hrc` there, so the checkbox is not rendered at all.
+ */
+const HRC_HINTS: Record<Exclude<QueryMode, 'keyword'>, string> = {
+  chromosome:
+    'Restricted to variants mapped in HRC r1.1 \u2014 enter Start and End as hg19 (GRCh37) positions.',
+  vcf:
+    'Restricted to variants mapped in HRC r1.1 \u2014 rows are matched on hg19 (GRCh37) chromosome, position, ref and alt.',
+  geneProduct:
+    'Restricted to variants mapped in HRC r1.1 \u2014 the gene region is resolved in hg19 (GRCh37).',
+  rsID:
+    'Restricted to variants mapped in HRC r1.1 \u2014 rsIDs are matched as usual, so coordinates are unaffected.',
+  rsIDList:
+    'Restricted to variants mapped in HRC r1.1 \u2014 rsIDs are matched as usual, so coordinates are unaffected.'
+};
+
 export function QueryDrawer({
   store,
   onSubmitted,
@@ -155,7 +180,7 @@ export function QueryDrawer({
           />
           {searchHRC && (
             <Typography variant="caption" className="query-hrc-hint">
-              Searching HRC r1.1 mapping — coordinates are hg19 (GRCh37).
+              {HRC_HINTS[mode]}
             </Typography>
           )}
         </Box>

@@ -5,7 +5,8 @@ import {
   buildAnnotationStore,
   collectLeafNames,
   defaultSelectionForStore,
-  nameForApiField
+  nameForApiField,
+  pruneSelectionForStore
 } from './annotations';
 import { LOCKED_ANNOTATION_NAMES } from './config';
 
@@ -80,5 +81,37 @@ describe('defaultSelectionForStore', () => {
       { id: '2', parent_id: '1', name: 'chr', api_field: 'chr', leaf: true }
     ] as Annotation[]);
     expect(defaultSelectionForStore(store)).toEqual(['chr']);
+  });
+});
+
+// A selection is persisted in localStorage and restored verbatim, so it
+// outlives the dataset it was made against. `rs_dbSNP151` exists only on HRC;
+// sending it to TOPMed's api-v2 fails the whole GraphQL document with
+// "Cannot query field 'rs_dbSNP151' on type 'Snp'", which reaches the user as
+// a masked "Unexpected error." and cannot be recovered from inside the app.
+describe('pruneSelectionForStore', () => {
+  it('drops stored names the active dataset does not carry', () => {
+    const store = buildAnnotationStore(topmedAnnotations);
+    expect(pruneSelectionForStore(['chr', 'pos', 'rs_dbSNP151', 'rs_dbSNP'], store)).toEqual([
+      'chr',
+      'pos',
+      'rs_dbSNP'
+    ]);
+  });
+
+  it('keeps a selection the dataset fully carries, in order', () => {
+    const store = buildAnnotationStore(hrcAnnotations);
+    const selection = ['chr', 'pos', 'ANNOVAR_ensembl_Effect', 'rs_dbSNP151'];
+    expect(pruneSelectionForStore(selection, store)).toEqual(selection);
+  });
+
+  // Branch nodes are not queryable fields; only leaves reach the GraphQL
+  // document, so a stored branch name would break the query just as surely.
+  it('drops branch nodes, keeping only queryable leaves', () => {
+    const store = buildAnnotationStore(hrcAnnotations);
+    expect(pruneSelectionForStore(['chr', 'ANNOVAR', 'ANNOVAR_ensembl_Effect'], store)).toEqual([
+      'chr',
+      'ANNOVAR_ensembl_Effect'
+    ]);
   });
 });

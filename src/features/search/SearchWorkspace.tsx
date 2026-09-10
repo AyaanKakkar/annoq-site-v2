@@ -31,7 +31,7 @@ import {
   normalizePageResponse,
   normalizeStatsResponse
 } from '../../lib/queryBuilder';
-import { defaultSelectionForStore } from '../../lib/annotations';
+import { defaultSelectionForStore, pruneSelectionForStore } from '../../lib/annotations';
 import { trackEvent } from '../../lib/analytics';
 import { LOCKED_ANNOTATION_NAMES } from '../../lib/config';
 import { queryModeLabel } from '../../lib/queryModes';
@@ -62,6 +62,19 @@ export function SearchWorkspace() {
   const store = annotationsQuery.data;
 
   useBusyWhile(state.loading, searchBusyLabel(state));
+
+  useEffect(() => {
+    // A stored selection outlives the dataset it was made against, and an
+    // unknown field fails the entire GraphQL document rather than being
+    // ignored -- so a selection carried over from the other stack breaks every
+    // search with no way back from inside the UI. Prune against the tree that
+    // actually loaded. Guarded on `store`: pruning against an unloaded tree
+    // would wipe the user's columns on every cold start.
+    if (!store) return;
+    const pruned = pruneSelectionForStore(annotationSelection.selected, store);
+    if (pruned.length === annotationSelection.selected.length) return;
+    annotationSelection.setSelected(pruned);
+  }, [annotationSelection, store]);
 
   useEffect(() => {
     // "No prior selection" cannot mean "empty" any more: chr and pos are always

@@ -289,6 +289,21 @@ inputs are relabelled "(hg19)", because api-v2 matches them against `pos_hg19` i
 genome-build caption still reads GRCh38/hg38: the dataset is TOPMed Freeze 8, and HRC r1.1 is a
 mapping of it rather than a different build.
 
+**The hint under the checkbox is per-mode, and deliberately so.** api-v2 adds `Mapped_in_HRC=Y` in
+every mode, but only the coordinate-based modes are reinterpreted:
+
+| Query mode | api-v2 family | What HRC mode changes |
+|---|---|---|
+| Chromosome | `*_by_chromosome` | range moves to `chr_hg19` + `pos_hg19` |
+| VCF File | `*_by_IDs` | per-variant match on `chr_hg19`/`pos_hg19`/`ref_hg19`/`alt_hg19` |
+| Gene Product | `gene_info` → `*_by_gene_product` | PANTHER resolves against the hg19 dictionary |
+| rsID | `*_by_RsID` | **nothing** — still `rs_dbSNP.keyword` |
+| rsID List | `*_by_RsIDs` | **nothing** — still `rs_dbSNP.keyword` |
+
+The strings live in `HRC_HINTS` in `QueryDrawer.tsx`. A single blanket "coordinates are hg19" line
+was wrong for the last two rows: it told users their rsID lookup had changed meaning when only the
+subset filter is added.
+
 The flag is held on `SearchState`/`QueryRequest` as `searchHRC`, beside `filters` rather than inside
 `values` — it is a cross-mode modifier, whereas `values` holds the per-mode inputs.
 

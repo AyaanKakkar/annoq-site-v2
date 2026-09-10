@@ -93,6 +93,55 @@ describe('default annotation selection', () => {
     expect(probe.textContent).toBe('chr,pos,ANNOVAR_ensembl_Effect');
   });
 
+  // A stored selection outlives the dataset it was made against: switch the
+  // build from HRC to TOPMed (or drop a column from annotation_tree.csv, which
+  // is what happened to rs_dbSNP151) and every search sends a field the schema
+  // no longer has. api-v2 rejects the whole document -- masked to the user as
+  // "Unexpected error." -- and nothing in the UI can clear it, so search stays
+  // broken until localStorage is wiped by hand.
+  it('drops a stored annotation the active dataset does not carry', async () => {
+    window.localStorage.setItem(
+      'annoq:selectedAnnotations',
+      JSON.stringify(['rs_dbSNP151', 'rs_dbSNP'])
+    );
+    const probe = await renderWorkspace(topmedAnnotations);
+    await vi.waitFor(() => expect(probe.textContent).toBe('chr,pos,rs_dbSNP'));
+  });
+
+  // Pruning must wait for the tree. Running it against an unloaded store would
+  // wipe the user's columns on every cold start.
+  it('keeps the stored selection while the annotation tree is still loading', async () => {
+    window.localStorage.setItem(
+      'annoq:selectedAnnotations',
+      JSON.stringify(['ANNOVAR_ensembl_Effect'])
+    );
+    let resolveAnnotations: (annotations: Annotation[]) => void = () => {};
+    fetchAnnotations.mockReturnValue(
+      new Promise<Annotation[]>((resolve) => {
+        resolveAnnotations = resolve;
+      })
+    );
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(
+      <QueryClientProvider client={client}>
+        <BusyProvider>
+          <AnnotationSelectionProvider>
+            <SearchProvider>
+              <ViewAllProvider>
+                <SelectionProbe />
+                <SearchWorkspace />
+              </ViewAllProvider>
+            </SearchProvider>
+          </AnnotationSelectionProvider>
+        </BusyProvider>
+      </QueryClientProvider>
+    );
+    const probe = await screen.findByTestId('selection');
+    expect(probe.textContent).toBe('chr,pos,ANNOVAR_ensembl_Effect');
+    resolveAnnotations(hrcAnnotations);
+    await vi.waitFor(() => expect(fetchAnnotations).toHaveBeenCalled());
+  });
+
   // Issue #4 makes chr and pos permanent members of the selection, so "nothing
   // is selected" -- the condition that used to trigger seeding -- can never be
   // observed again. Without this test the #9 defaults would silently stop

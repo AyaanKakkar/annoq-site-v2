@@ -104,6 +104,24 @@ export function defaultSelectionForStore(store: AnnotationStore): string[] {
   return ['chr', 'pos', 'ref', 'alt', store.rsidField].filter((name) => store.byName[name]?.leaf);
 }
 
+/**
+ * Drop selected names the active dataset does not carry as queryable leaves.
+ *
+ * The selection is persisted in localStorage and restored verbatim, so it
+ * outlives the dataset it was made against. Point the build at the other stack
+ * -- or remove a column from `annotation_tree.csv`, which is what happened to
+ * `rs_dbSNP151` -- and every search sends a field the schema no longer has.
+ * api-v2 rejects the *whole* document ("Cannot query field 'rs_dbSNP151' on
+ * type 'Snp'"), which `MaskErrors` turns into a bare "Unexpected error.", and
+ * no action inside the UI clears it: search stays broken until localStorage is
+ * wiped by hand.
+ *
+ * Branch nodes are dropped too -- only leaves are queryable fields.
+ */
+export function pruneSelectionForStore(selected: string[], store: AnnotationStore): string[] {
+  return selected.filter((name) => store.byName[name]?.leaf);
+}
+
 function findRsidField(annotations: Annotation[]): string {
   const exactNames = ['rs_dbSNP151', 'rs_dbSNP'];
   for (const name of exactNames) {
