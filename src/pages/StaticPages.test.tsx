@@ -108,3 +108,22 @@ describe('TOPMed attribution links', () => {
     expect(release.textContent).not.toMatch(/Trans-Omics/);
   });
 });
+
+// The trusted-resources row credits where the *data* came from. The dataset is
+// now TOPMed Freeze 8, so the HRC logo no longer belongs there -- HRC r1.1 is a
+// mapping users can filter on, not the source of the variants.
+describe('trusted resources logos', () => {
+  it('credits TOPMed as the data source', () => {
+    render(<MemoryRouter><HomePage /></MemoryRouter>);
+    expect(screen.getByRole('link', { name: 'TOPMed' })).toHaveAttribute(
+      'href',
+      'https://topmed.nhlbi.nih.gov/'
+    );
+  });
+
+  it('no longer carries an HRC logo link', () => {
+    const { container } = render(<MemoryRouter><HomePage /></MemoryRouter>);
+    expect(container.querySelector('a[href*="haplotype-reference-consortium"]')).toBeNull();
+    expect(screen.queryByRole('link', { name: 'HRC' })).not.toBeInTheDocument();
+  });
+});

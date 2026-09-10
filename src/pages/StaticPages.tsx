@@ -163,7 +163,6 @@ export function HomePage() {
             <Logo href="http://pantherdb.org/" src="/assets/images/logos/panther-logo-mono.png" label="PANTHER" />
             <Logo href="http://geneontology.org/" src="/assets/images/logos/go-logo-mono.png" label="GO" />
             <Logo href="https://topmed.nhlbi.nih.gov/" label="TOPMed" />
-            <Logo href="http://www.haplotype-reference-consortium.org" label="HRC" />
           </Grid>
         </Container>
       </Box>
