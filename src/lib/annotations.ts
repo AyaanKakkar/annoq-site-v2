@@ -53,6 +53,23 @@ export function flattenAnnotationTree(nodes: AnnotationNode[]): AnnotationNode[]
   return nodes.flatMap((node) => [node, ...flattenAnnotationTree(node.children)]);
 }
 
+/**
+ * Every node depth-first, each parent immediately before its own descendants.
+ *
+ * This is the order the annotation tree renders in, and the order annoq-site's
+ * /version page uses (it walks `treeControl.dataNodes`). It is NOT the order
+ * `store.annotations` is in: /annotations returns every category node first and
+ * the leaves afterwards, so iterating the raw array groups unrelated rows
+ * together. Anything presenting annotations as a flat list wants this.
+ *
+ * The API sets `sort` on the top-level categories only (9 of 839 entries), and
+ * already emits root's children in that order, so a depth-first walk honours it
+ * without a comparator.
+ */
+export function flattenTree(nodes: AnnotationNode[]): AnnotationNode[] {
+  return nodes.flatMap((node) => [node, ...flattenTree(node.children)]);
+}
+
 export function collectDescendantNames(node: AnnotationNode): string[] {
   return [node.name, ...node.children.flatMap(collectDescendantNames)];
 }

@@ -4,6 +4,7 @@ import {
   apiFieldFor,
   buildAnnotationStore,
   collectLeafNames,
+  flattenTree,
   defaultSelectionForStore,
   nameForApiField,
   pruneSelectionForStore
@@ -113,5 +114,19 @@ describe('pruneSelectionForStore', () => {
       'chr',
       'ANNOVAR_ensembl_Effect'
     ]);
+  });
+});
+
+describe('flattenTree', () => {
+  it('returns nodes depth-first, each parent immediately before its own children', () => {
+    const store = buildAnnotationStore([
+      { id: '0', name: 'root', leaf: false },
+      { id: '1', parent_id: '0', name: 'A', leaf: false },
+      { id: '2', parent_id: '0', name: 'B', leaf: false },
+      { id: '3', parent_id: '1', name: 'a1', leaf: true },
+      { id: '4', parent_id: '2', name: 'b1', leaf: true }
+    ] as Annotation[]);
+
+    expect(flattenTree(store.tree).map((node) => node.name)).toEqual(['root', 'A', 'a1', 'B', 'b1']);
   });
 });

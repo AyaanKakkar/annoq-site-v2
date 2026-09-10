@@ -19,6 +19,7 @@ import { useMemo, useRef, useState } from 'react';
 import { AnnotationTree } from '../features/annotations/AnnotationTree';
 import { useAnnotationSelection } from '../features/annotations/AnnotationSelectionProvider';
 import { useAnnotations } from '../features/annotations/useAnnotations';
+import { flattenTree } from '../lib/annotations';
 import { trackEvent } from '../lib/analytics';
 import { downloadText, parseConfig } from '../lib/files';
 
@@ -30,8 +31,12 @@ export function SupportedAnnotationsPage() {
   const input = useRef<HTMLInputElement>(null);
   const store = annotations.data;
 
+  // Tree order, not `store.annotations` order: /annotations lists every category
+  // node before any leaf, so the raw array put unrelated rows next to each other.
+  // Walking the tree groups each row under its category and matches both the
+  // Annotations tab beside it and annoq-site's /version page.
   const versionRows = useMemo(
-    () => store?.annotations.filter((annotation) => annotation.version && annotation.name) ?? [],
+    () => (store ? flattenTree(store.tree).filter((annotation) => annotation.version && annotation.name) : []),
     [store]
   );
 
